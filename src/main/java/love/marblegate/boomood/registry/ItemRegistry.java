@@ -9,5 +9,5 @@ import net.minecraftforge.registries.RegistryObject;
 
 public class ItemRegistry {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Boomood.MOD_ID);
-    public static final RegistryObject<Item> TRIGGER = ITEMS.register("trigger_item", TriggerItem::new);
+    public static final RegistryObject<Item> CAUSE = ITEMS.register("the_cause", TriggerItem::new);
 }

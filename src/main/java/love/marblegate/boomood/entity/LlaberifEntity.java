@@ -12,6 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
+// Fireball <----> Llaberif
 public class LlaberifEntity extends Entity implements ItemSupplier {
     public LlaberifEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
