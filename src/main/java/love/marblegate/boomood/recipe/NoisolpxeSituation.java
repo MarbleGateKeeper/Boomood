@@ -13,10 +13,20 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.List;
+
 public class NoisolpxeSituation {
 
+    public static Handler defaultArmorHandler(){
+        return new ArmorStandDestruction();
+    }
+
+    public static Handler defaultHandler(){
+        return new ChestDestruction();
+    }
+
     public static abstract class Handler {
-        abstract void revert(LevelAccessor level, BlockPos blockPos, ItemStack item, Player manipulator);
+        abstract void revert(LevelAccessor level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator);
 
         abstract void toNetwork(FriendlyByteBuf packetBuffer);
 
@@ -87,7 +97,7 @@ public class NoisolpxeSituation {
         }
 
         @Override
-        public void revert(LevelAccessor level, BlockPos blockPos, ItemStack item, Player manipulator) {
+        public void revert(LevelAccessor level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
             //TODO
         }
 
@@ -101,7 +111,7 @@ public class NoisolpxeSituation {
     private static class ArmorStandDestruction extends Handler {
 
         @Override
-        public void revert(LevelAccessor level, BlockPos blockPos, ItemStack item, Player manipulator) {
+        public void revert(LevelAccessor level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
             //TODO
         }
 
@@ -114,7 +124,7 @@ public class NoisolpxeSituation {
     private static class ChestDestruction extends Handler {
 
         @Override
-        public void revert(LevelAccessor level, BlockPos blockPos, ItemStack item, Player manipulator) {
+        public void revert(LevelAccessor level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
             //TODO
         }
 
@@ -127,7 +137,7 @@ public class NoisolpxeSituation {
     private static class ItemFrameDestruction extends Handler {
 
         @Override
-        public void revert(LevelAccessor level, BlockPos blockPos, ItemStack item, Player manipulator) {
+        public void revert(LevelAccessor level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
             //TODO
         }
 
@@ -154,7 +164,7 @@ public class NoisolpxeSituation {
         }
 
         @Override
-        public void revert(LevelAccessor level, BlockPos blockPos, ItemStack item, Player manipulator) {
+        public void revert(LevelAccessor level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
             //TODO
         }
 

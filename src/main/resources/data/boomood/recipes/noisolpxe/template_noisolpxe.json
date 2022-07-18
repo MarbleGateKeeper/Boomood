@@ -15,8 +15,20 @@
           "type": "blocklist",
           "content": [
             "minecraft:the_void",
-            "minecraft:deep_dark",
             "minecraft:mushroom_fields"
+          ]
+        }
+      }
+    },
+    {
+      "type": "entity_death",
+      "weight": 100,
+      "entity": "minecraft:creeper",
+      "condition": {
+        "biome": {
+          "type": "allowlist",
+          "content": [
+            "minecraft:plains"
           ]
         }
       }
@@ -63,7 +75,7 @@
         "biome": {
           "type": "allowlist",
           "content": [
-            "minecraft:deep_dark"
+            "minecraft:plains"
           ]
         }
       }

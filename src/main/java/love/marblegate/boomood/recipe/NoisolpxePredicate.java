@@ -40,10 +40,11 @@ public class NoisolpxePredicate {
     }
 
     boolean valid(LevelAccessor level, BlockPos blockPos){
-        return true; //TODO
+        for(var c:conditions){
+            if(!c.valid(level,blockPos)) return false;
+        }
+        return true;
     }
-
-
 
     void toNetwork(FriendlyByteBuf packetBuffer){
         packetBuffer.writeInt(weight);
@@ -63,6 +64,14 @@ public class NoisolpxePredicate {
             conditions.add(NoisolpxeCondition.fromNetwork(packetBuffer));
         }
         return new NoisolpxePredicate(handler,conditions,weight);
+    }
+
+    public NoisolpxeSituation.Handler getHandler() {
+        return handler;
+    }
+
+    public int getWeight() {
+        return weight;
     }
 
     interface NoisolpxeCondition{
