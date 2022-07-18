@@ -12,7 +12,6 @@ public class RendererRegistry {
     @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
     public static void onClientSetUpEvent(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(EntityRegistry.LLABERIF.get(), ThrownItemRenderer::new);
         event.registerEntityRenderer(EntityRegistry.TNT.get(), ThrownItemRenderer::new);
     }
 }

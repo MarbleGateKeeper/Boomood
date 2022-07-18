@@ -5,6 +5,7 @@ import love.marblegate.boomood.misc.MiscUtils;
 import love.marblegate.boomood.recipe.NoisolpxeRecipe;
 import love.marblegate.boomood.recipe.NoisolpxeSituation;
 import love.marblegate.boomood.registry.RecipeRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -20,6 +21,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -38,8 +41,25 @@ public class TriggerItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand interactionHand) {
         if(!level.isClientSide()){
-            var blockPos = MiscUtils.findLookAt(player);
-            var area = new AABB(blockPos).expandTowards(3,3,3).expandTowards(-3,-1,-3);
+            var groundZero = MiscUtils.findLookAt(player);
+            var area = new AABB(groundZero).expandTowards(3,3,3).expandTowards(-3,-1,-3);
+            // Extinguish fire
+            var blockPosStream = BlockPos.betweenClosedStream(area);
+            blockPosStream.filter(blockPos -> {
+                var bs = level.getBlockState(blockPos);
+                return bs.is(Blocks.FIRE) || bs.is(Blocks.SOUL_FIRE);
+            }).forEach(blockPos -> {
+                level.setBlockAndUpdate(blockPos,Blocks.AIR.defaultBlockState());
+            });
+            // Remove non-source liquid & Water
+            blockPosStream = BlockPos.betweenClosedStream(area);
+            blockPosStream.filter(blockPos -> {
+                var fs = level.getFluidState(blockPos);
+                return !fs.isEmpty() && (!fs.isSource() || fs.isSourceOfType(Fluids.WATER));
+            }).forEach(blockPos -> {
+                level.setBlockAndUpdate(blockPos,Blocks.AIR.defaultBlockState());
+            });
+            // Revert item Drop
             var itemStackEntities = level.getEntities((Entity) null, area, entity -> entity instanceof ItemEntity);
             if(!itemStackEntities.isEmpty()){
                 var container = new SimpleContainer(9);
@@ -60,7 +80,7 @@ public class TriggerItem extends Item {
                 while(!container.isEmpty()){
                     NoisolpxeRecipe recipe = level.getRecipeManager().getRecipeFor(RecipeRegistry.RECIPE_TYPE_NOISOLPXE.get(), container,level).orElse(null);
                     if(recipe!=null){
-                        var handler = recipe.produceSituationHandler(level,blockPos);
+                        var handler = recipe.produceSituationHandler(level,groundZero);
                         var consumedItems = recipe.consumeItemAfterProduceSituationHandler(container);
                         if(handler.isEmpty()){
                             handleRemainingItems(consumedItems,revertList);
