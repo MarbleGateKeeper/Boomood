@@ -1,0 +1,72 @@
+{
+  "type": "boomood:noisolpxe",
+  "cause": {
+    "item": "minecraft:raw_iron"
+  },
+  "upper_bound": 10,
+  "lower_bound": 1,
+  "situations": [
+    {
+      "type": "entity_death",
+      "weight": 100,
+      "entity": "minecraft:zombie",
+      "condition": {
+        "biome": {
+          "type": "blocklist",
+          "content": [
+            "minecraft:the_void",
+            "minecraft:deep_dark",
+            "minecraft:mushroom_fields"
+          ]
+        }
+      }
+    },
+    {
+      "type": "chest_destruction",
+      "weight": 50,
+      "condition": {
+        "height": {
+          "type": "greater",
+          "content": 60
+        }
+      }
+    },
+    {
+      "type": "item_frame_destruction",
+      "weight": 50,
+      "condition": {
+        "height": {
+          "type": "greater",
+          "content": 70
+        }
+      }
+    },
+    {
+      "type": "armor_stand_destruction",
+      "weight": 50,
+      "condition": {
+        "height": {
+          "type": "greater",
+          "content": 80
+        }
+      }
+    },
+    {
+      "type": "block_destruction",
+      "weight": 100,
+      "block": "minecraft:deepslate_iron_ore",
+      "condition": {
+        "height": {
+          "type": "less",
+          "content": 48
+        },
+        "biome": {
+          "type": "allowlist",
+          "content": [
+            "minecraft:deep_dark"
+          ]
+        }
+      }
+    }
+  ]
+}
