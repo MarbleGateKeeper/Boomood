@@ -16,6 +16,17 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.List;
 
 public class NoisolpxeSituation {
+    private final Handler handler;
+    private final List<ItemStack> items;
+
+    private NoisolpxeSituation(Handler handler, List<ItemStack> items) {
+        this.handler = handler;
+        this.items = items;
+    }
+
+    public static NoisolpxeSituation create(Handler handler, List<ItemStack> items){
+        return new NoisolpxeSituation(handler, items);
+    }
 
     public static Handler defaultArmorHandler(){
         return new ArmorStandDestruction();
@@ -23,6 +34,22 @@ public class NoisolpxeSituation {
 
     public static Handler defaultHandler(){
         return new ChestDestruction();
+    }
+
+    public Handler getHandler() {
+        return handler;
+    }
+
+    public List<ItemStack> getItems() {
+        return items;
+    }
+
+    @Override
+    public String toString() {
+        return "NoisolpxeSituation{" +
+                "handler=" + handler +
+                ", items=" + items +
+                '}';
     }
 
     public static abstract class Handler {

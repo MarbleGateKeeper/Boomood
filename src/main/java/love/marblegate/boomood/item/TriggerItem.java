@@ -24,6 +24,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,54 +37,51 @@ public class TriggerItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand interactionHand) {
-        var blockPos = MiscUtils.findLookAt(player);
-        var area = new AABB(blockPos).expandTowards(3,3,3).expandTowards(-3,-1,-3);
-        var itemStackEntities = level.getEntities((Entity) null, area, entity -> entity instanceof ItemEntity);
-        if(!itemStackEntities.isEmpty()){
-            var container = new SimpleContainer(9);
-            for(var itemStackEntity: itemStackEntities){
-                var item = ((ItemEntity) itemStackEntity).getItem();
-                if(container.canAddItem(item)){
-                    container.addItem(item);
-                } else {
-                    List<ItemStack> oldItems = container.removeAllItems();
-                    container = new SimpleContainer(container.getContainerSize()*2);
-                    for(var oldItem: oldItems){
-                        container.addItem(oldItem);
-                    }
-                    container.addItem(item);
-                }
-            }
-            Map<NoisolpxeSituation.Handler, List<ItemStack>> revertMap = new HashMap<>();
-            while(!container.isEmpty()){
-                NoisolpxeRecipe recipe = level.getRecipeManager().getRecipeFor(RecipeRegistry.RECIPE_TYPE_NOISOLPXE.get(), container,level).orElse(null);
-                if(recipe!=null){
-                    var handler = recipe.produceSituationHandler(level,blockPos);
-                    var consumedItems = recipe.consumeItemAfterProduceSituationHandler(container);
-                    if(handler.isEmpty()){
-                        var armorConsumed = consumedItems.stream().filter(itemStack -> itemStack.getItem() instanceof ArmorItem).toList();
-                        if(!armorConsumed.isEmpty()) revertMap.put(NoisolpxeSituation.defaultArmorHandler(),Lists.newArrayList(armorConsumed));
-                        var commonConsumed = consumedItems.stream().filter(itemStack -> !(itemStack.getItem() instanceof ArmorItem)).toList();
-                        if(!commonConsumed.isEmpty()) revertMap.put(NoisolpxeSituation.defaultHandler(),Lists.newArrayList(commonConsumed));
-                    }else{
-                        revertMap.put(handler.get(),consumedItems);
-                    }
-                } else {
-                    for(int i=0;i<container.getContainerSize();i++){
-                        var item = container.getItem(i);
-                        if(!item.isEmpty()){
-                            if(item.getItem() instanceof ArmorItem){
-                                revertMap.put(NoisolpxeSituation.defaultArmorHandler(),Lists.newArrayList(item));
-                            } else {
-                                revertMap.put(NoisolpxeSituation.defaultHandler(),Lists.newArrayList(item));
-                            }
+        if(!level.isClientSide()){
+            var blockPos = MiscUtils.findLookAt(player);
+            var area = new AABB(blockPos).expandTowards(3,3,3).expandTowards(-3,-1,-3);
+            var itemStackEntities = level.getEntities((Entity) null, area, entity -> entity instanceof ItemEntity);
+            if(!itemStackEntities.isEmpty()){
+                var container = new SimpleContainer(9);
+                for(var itemStackEntity: itemStackEntities){
+                    var item = ((ItemEntity) itemStackEntity).getItem();
+                    if(container.canAddItem(item)){
+                        container.addItem(item);
+                    } else {
+                        List<ItemStack> oldItems = container.removeAllItems();
+                        container = new SimpleContainer(container.getContainerSize()*2);
+                        for(var oldItem: oldItems){
+                            container.addItem(oldItem);
                         }
+                        container.addItem(item);
                     }
-                    container.removeAllItems();
                 }
+                List<NoisolpxeSituation> revertList = new ArrayList<>();
+                while(!container.isEmpty()){
+                    NoisolpxeRecipe recipe = level.getRecipeManager().getRecipeFor(RecipeRegistry.RECIPE_TYPE_NOISOLPXE.get(), container,level).orElse(null);
+                    if(recipe!=null){
+                        var handler = recipe.produceSituationHandler(level,blockPos);
+                        var consumedItems = recipe.consumeItemAfterProduceSituationHandler(container);
+                        if(handler.isEmpty()){
+                            handleRemainingItems(consumedItems,revertList);
+                        }else{
+                            revertList.add(NoisolpxeSituation.create(handler.get(),consumedItems));
+                        }
+                    } else {
+                        var leftItems = container.removeAllItems().stream().filter(itemStack -> !itemStack.isEmpty()).toList();
+                        handleRemainingItems(leftItems,revertList);
+                    }
+                }
+                System.out.println(revertList);
             }
-            System.out.println(revertMap);
         }
         return InteractionResultHolder.sidedSuccess(player.getItemInHand(interactionHand),level.isClientSide());
+    }
+
+    private void handleRemainingItems(List<ItemStack> items, List<NoisolpxeSituation> destinationList){
+        var armorConsumed = items.stream().filter(itemStack -> itemStack.getItem() instanceof ArmorItem).toList();
+        if(!armorConsumed.isEmpty()) destinationList.add(NoisolpxeSituation.create(NoisolpxeSituation.defaultArmorHandler(),Lists.newArrayList(armorConsumed)));
+        var commonConsumed = items.stream().filter(itemStack -> !(itemStack.getItem() instanceof ArmorItem)).toList();
+        if(!commonConsumed.isEmpty()) destinationList.add(NoisolpxeSituation.create(NoisolpxeSituation.defaultHandler(),Lists.newArrayList(commonConsumed)));
     }
 }
