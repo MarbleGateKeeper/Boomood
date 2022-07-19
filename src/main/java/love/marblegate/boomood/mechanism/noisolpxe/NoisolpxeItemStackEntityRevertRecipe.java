@@ -99,7 +99,7 @@ public class NoisolpxeItemStackEntityRevertRecipe implements Recipe<Container> {
     }
 
     // Method for exporting result
-    public Optional<NoisolpxeItemStackDropSituation.Handler> produceSituationHandler(LevelAccessor level, BlockPos blockPos) {
+    public Optional<NoisolpxeItemStackDropSituationHandler> produceSituationHandler(LevelAccessor level, BlockPos blockPos) {
         List<NoisolpxeItemStackEntityRevertPredicate> qualifiedList = noisolpxeItemStackEntityRevertPredicates.stream()
                 .filter(noisolpxeItemStackEntityRevertPredicate -> noisolpxeItemStackEntityRevertPredicate.valid(level, blockPos)).toList();
         if (qualifiedList.isEmpty()) {

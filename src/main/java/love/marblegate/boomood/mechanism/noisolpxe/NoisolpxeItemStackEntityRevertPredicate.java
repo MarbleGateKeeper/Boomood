@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class NoisolpxeItemStackEntityRevertPredicate {
-    private final NoisolpxeItemStackDropSituation.Handler handler;
+    private final NoisolpxeItemStackDropSituationHandler handler;
     private final List<Condition> conditions;
     private final int weight;
 
@@ -30,10 +30,10 @@ class NoisolpxeItemStackEntityRevertPredicate {
                 conditions.add(new BiomePredicate(biomeConditionJson));
         }
         weight = GsonHelper.getAsInt(jsonObject, "weight");
-        handler = NoisolpxeItemStackDropSituation.Handler.create(jsonObject);
+        handler = NoisolpxeItemStackDropSituationHandler.create(jsonObject);
     }
 
-    NoisolpxeItemStackEntityRevertPredicate(NoisolpxeItemStackDropSituation.Handler handler, List<Condition> conditions, int weight) {
+    NoisolpxeItemStackEntityRevertPredicate(NoisolpxeItemStackDropSituationHandler handler, List<Condition> conditions, int weight) {
         this.handler = handler;
         this.conditions = conditions;
         this.weight = weight;
@@ -57,7 +57,7 @@ class NoisolpxeItemStackEntityRevertPredicate {
 
     static NoisolpxeItemStackEntityRevertPredicate fromNetwork(FriendlyByteBuf packetBuffer) {
         var weight = packetBuffer.readInt();
-        var handler = NoisolpxeItemStackDropSituation.Handler.fromNetwork(packetBuffer);
+        var handler = NoisolpxeItemStackDropSituationHandler.fromNetwork(packetBuffer);
         var size = packetBuffer.readInt();
         List<Condition> conditions = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -66,7 +66,7 @@ class NoisolpxeItemStackEntityRevertPredicate {
         return new NoisolpxeItemStackEntityRevertPredicate(handler, conditions, weight);
     }
 
-    public NoisolpxeItemStackDropSituation.Handler getHandler() {
+    public NoisolpxeItemStackDropSituationHandler getHandler() {
         return handler;
     }
 

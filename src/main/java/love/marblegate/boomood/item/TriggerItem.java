@@ -9,7 +9,6 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
 public class TriggerItem extends Item {
@@ -21,7 +20,7 @@ public class TriggerItem extends Item {
     public InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand interactionHand) {
         if (!level.isClientSide()) {
             var groundZero = MiscUtils.findLookAt(player);
-            var area = new AABB(groundZero).expandTowards(3, 3, 3).expandTowards(-3, -1, -3);
+            var area = MiscUtils.createScanningArea(groundZero);
             // Extinguish fire
             NoisolpxeSituationFactory.fireBurnRevert(area)
                     .revert(level, groundZero, player);
@@ -31,6 +30,7 @@ public class TriggerItem extends Item {
             // Revert item Drop
             NoisolpxeSituationFactory.itemDropRevert(level, groundZero, area)
                     .merge()
+                    .sort()
                     .revert(level, groundZero, player);
 
         }

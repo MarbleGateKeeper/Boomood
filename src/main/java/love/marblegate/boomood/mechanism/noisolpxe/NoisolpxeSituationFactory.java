@@ -75,10 +75,10 @@ public class NoisolpxeSituationFactory {
     private static void handleRemainingItems(List<ItemStack> items, List<NoisolpxeItemStackDropSituation> destinationList) {
         var armorConsumed = items.stream().filter(itemStack -> itemStack.getItem() instanceof ArmorItem).toList();
         if (!armorConsumed.isEmpty())
-            destinationList.add(NoisolpxeItemStackDropSituation.create(NoisolpxeItemStackDropSituation.Handler.createArmorHandler(), Lists.newArrayList(armorConsumed)));
+            destinationList.add(NoisolpxeItemStackDropSituation.create(NoisolpxeItemStackDropSituationHandler.createArmorHandler(), Lists.newArrayList(armorConsumed)));
         var commonConsumed = items.stream().filter(itemStack -> !(itemStack.getItem() instanceof ArmorItem)).toList();
         if (!commonConsumed.isEmpty())
-            destinationList.add(NoisolpxeItemStackDropSituation.create(NoisolpxeItemStackDropSituation.Handler.createDefaultHandler(), Lists.newArrayList(commonConsumed)));
+            destinationList.add(NoisolpxeItemStackDropSituation.create(NoisolpxeItemStackDropSituationHandler.createDefaultHandler(), Lists.newArrayList(commonConsumed)));
     }
 
 
