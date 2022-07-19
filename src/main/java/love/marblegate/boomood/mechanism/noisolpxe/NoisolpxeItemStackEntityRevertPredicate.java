@@ -1,4 +1,4 @@
-package love.marblegate.boomood.recipe;
+package love.marblegate.boomood.mechanism.noisolpxe;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -13,60 +13,60 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NoisolpxePredicate {
-    private final NoisolpxeSituation.Handler handler;
-    private final List<NoisolpxeCondition> conditions;
+class NoisolpxeItemStackEntityRevertPredicate {
+    private final NoisolpxeItemStackDropSituation.Handler handler;
+    private final List<Condition> conditions;
     private final int weight;
 
-    NoisolpxePredicate(JsonObject jsonObject) {
+    NoisolpxeItemStackEntityRevertPredicate(JsonObject jsonObject) {
         conditions = new ArrayList<>();
         var conditionJson = jsonObject.getAsJsonObject("condition");
-        if(conditionJson!=null){
+        if (conditionJson != null) {
             var heightConditionJson = conditionJson.getAsJsonObject("height");
-            if(heightConditionJson!=null)
+            if (heightConditionJson != null)
                 conditions.add(new HeightPredicate(heightConditionJson));
             var biomeConditionJson = conditionJson.getAsJsonObject("biome");
-            if(biomeConditionJson!=null)
+            if (biomeConditionJson != null)
                 conditions.add(new BiomePredicate(biomeConditionJson));
         }
-        weight = GsonHelper.getAsInt(jsonObject,"weight");
-        handler = NoisolpxeSituation.Handler.create(jsonObject);
+        weight = GsonHelper.getAsInt(jsonObject, "weight");
+        handler = NoisolpxeItemStackDropSituation.Handler.create(jsonObject);
     }
 
-    NoisolpxePredicate(NoisolpxeSituation.Handler handler, List<NoisolpxeCondition> conditions, int weight) {
+    NoisolpxeItemStackEntityRevertPredicate(NoisolpxeItemStackDropSituation.Handler handler, List<Condition> conditions, int weight) {
         this.handler = handler;
         this.conditions = conditions;
         this.weight = weight;
     }
 
-    boolean valid(LevelAccessor level, BlockPos blockPos){
-        for(var c:conditions){
-            if(!c.valid(level,blockPos)) return false;
+    boolean valid(LevelAccessor level, BlockPos blockPos) {
+        for (var c : conditions) {
+            if (!c.valid(level, blockPos)) return false;
         }
         return true;
     }
 
-    void toNetwork(FriendlyByteBuf packetBuffer){
+    void toNetwork(FriendlyByteBuf packetBuffer) {
         packetBuffer.writeInt(weight);
         handler.toNetwork(packetBuffer);
         packetBuffer.writeInt(conditions.size());
-        for(var cd:conditions){
+        for (var cd : conditions) {
             cd.toNetwork(packetBuffer);
         }
     }
 
-    static NoisolpxePredicate fromNetwork(FriendlyByteBuf packetBuffer) {
+    static NoisolpxeItemStackEntityRevertPredicate fromNetwork(FriendlyByteBuf packetBuffer) {
         var weight = packetBuffer.readInt();
-        var handler = NoisolpxeSituation.Handler.fromNetwork(packetBuffer);
+        var handler = NoisolpxeItemStackDropSituation.Handler.fromNetwork(packetBuffer);
         var size = packetBuffer.readInt();
-        List<NoisolpxeCondition> conditions = new ArrayList<>();
-        for (int i = 0;i<size;i++){
-            conditions.add(NoisolpxeCondition.fromNetwork(packetBuffer));
+        List<Condition> conditions = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            conditions.add(Condition.fromNetwork(packetBuffer));
         }
-        return new NoisolpxePredicate(handler,conditions,weight);
+        return new NoisolpxeItemStackEntityRevertPredicate(handler, conditions, weight);
     }
 
-    public NoisolpxeSituation.Handler getHandler() {
+    public NoisolpxeItemStackDropSituation.Handler getHandler() {
         return handler;
     }
 
@@ -74,55 +74,54 @@ public class NoisolpxePredicate {
         return weight;
     }
 
-    interface NoisolpxeCondition{
+    interface Condition {
         boolean valid(LevelAccessor level, BlockPos blockPos);
 
         void toNetwork(FriendlyByteBuf packetBuffer);
 
-        static NoisolpxeCondition fromNetwork(FriendlyByteBuf packetBuffer) {
+        static Condition fromNetwork(FriendlyByteBuf packetBuffer) {
             var st = packetBuffer.readByte();
-            if(st==1) {
+            if (st == 1) {
                 var limit = packetBuffer.readInt();
                 HeightPredicate.Type type;
-                try{
+                try {
                     type = packetBuffer.readEnum(HeightPredicate.Type.class);
-                } catch(ArrayIndexOutOfBoundsException e){
-                    throw new JsonSyntaxException("NoisolpxePredicate.NoisolpxeCondition#fromNetwork received bad packet. This causes recipe serialization issue. Invalid HeightPredicate type");
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    throw new JsonSyntaxException("NoisolpxeItemStackEntityRevertPredicate.Condition#fromNetwork received bad packet. This causes recipe serialization issue. Invalid HeightPredicate type");
                 }
-                return new HeightPredicate(limit,type);
-            }
-            else if(st==2) {
+                return new HeightPredicate(limit, type);
+            } else if (st == 2) {
                 BiomePredicate.Type type;
-                try{
+                try {
                     type = packetBuffer.readEnum(BiomePredicate.Type.class);
-                } catch(ArrayIndexOutOfBoundsException e){
-                    throw new JsonSyntaxException("NoisolpxePredicate.NoisolpxeCondition#fromNetwork received bad packet. This causes recipe serialization issue. Invalid BiomePredicate type");
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    throw new JsonSyntaxException("NoisolpxeItemStackEntityRevertPredicate.Condition#fromNetwork received bad packet. This causes recipe serialization issue. Invalid BiomePredicate type");
                 }
                 var size = packetBuffer.readInt();
                 List<Biome> biomeList = new ArrayList<>();
-                for (int i = 0;i<size;i++){
+                for (int i = 0; i < size; i++) {
                     var rl = packetBuffer.readResourceLocation();
                     var biome = ForgeRegistries.BIOMES.getValue(rl);
-                    if(biome ==null){
-                        throw new JsonSyntaxException("NoisolpxeSituation.Handler#fromNetwork received bad packet. This causes recipe serialization issue. Invalid biome: " + rl);
+                    if (biome == null) {
+                        throw new JsonSyntaxException("NoisolpxeItemStackEntityRevertPredicate.Condition#fromNetwork received bad packet. This causes recipe serialization issue. Invalid biome: " + rl);
                     }
                     biomeList.add(biome);
                 }
-                return new BiomePredicate(biomeList,type);
-            }
-            else throw new RuntimeException("NoisolpxePredicate.NoisolpxeCondition#fromNetwork received bad packet. This causes recipe serialization issue");
+                return new BiomePredicate(biomeList, type);
+            } else
+                throw new RuntimeException("NoisolpxeItemStackEntityRevertPredicate.Condition#fromNetwork received bad packet. This causes recipe serialization issue");
         }
     }
 
-    private static class HeightPredicate implements NoisolpxeCondition{
+    private static class HeightPredicate implements Condition {
         private final int limit;
         private final Type type;
 
         HeightPredicate(JsonObject jsonObject) {
-            this.limit = GsonHelper.getAsInt(jsonObject,"content");
-            var t = GsonHelper.getAsString(jsonObject,"type");
-            if(t.equals("less")) type = Type.LESS;
-            else if(t.equals("greater")) type = Type.GREATER;
+            this.limit = GsonHelper.getAsInt(jsonObject, "content");
+            var t = GsonHelper.getAsString(jsonObject, "type");
+            if (t.equals("less")) type = Type.LESS;
+            else if (t.equals("greater")) type = Type.GREATER;
             else throw new JsonSyntaxException("Expected type to be \"less\" or \"greater\", was " + t);
         }
 
@@ -133,7 +132,7 @@ public class NoisolpxePredicate {
 
         @Override
         public boolean valid(LevelAccessor level, BlockPos blockPos) {
-            return (type == Type.LESS)? blockPos.getY()<limit: blockPos.getY()>limit;
+            return (type == Type.LESS) ? blockPos.getY() < limit : blockPos.getY() > limit;
         }
 
         @Override
@@ -143,20 +142,20 @@ public class NoisolpxePredicate {
             packetBuffer.writeEnum(type);
         }
 
-        private enum Type{
+        private enum Type {
             LESS,
             GREATER
         }
     }
 
-    private static class BiomePredicate implements NoisolpxeCondition{
+    private static class BiomePredicate implements Condition {
         private final List<Biome> biomeList;
         private final Type type;
 
         BiomePredicate(JsonObject jsonObject) {
-            String t = GsonHelper.getAsString(jsonObject,"type");
-            if(t.equals("allowlist")) type = Type.ALLOWLIST;
-            else if(t.equals("blocklist")) type = Type.BLOCKLIST;
+            String t = GsonHelper.getAsString(jsonObject, "type");
+            if (t.equals("allowlist")) type = Type.ALLOWLIST;
+            else if (t.equals("blocklist")) type = Type.BLOCKLIST;
             else throw new JsonSyntaxException("Expected type to be \"allowlist\" or \"blocklist\", was " + t);
             this.biomeList = new ArrayList<>();
             for (var jsonElement : GsonHelper.getAsJsonArray(jsonObject, "content")) {
@@ -184,12 +183,12 @@ public class NoisolpxePredicate {
             packetBuffer.writeByte(2);
             packetBuffer.writeEnum(type);
             packetBuffer.writeInt(biomeList.size());
-            for(var biome:biomeList){
+            for (var biome : biomeList) {
                 packetBuffer.writeResourceLocation(biome.getRegistryName());
             }
         }
 
-        private enum Type{
+        private enum Type {
             ALLOWLIST,
             BLOCKLIST
         }

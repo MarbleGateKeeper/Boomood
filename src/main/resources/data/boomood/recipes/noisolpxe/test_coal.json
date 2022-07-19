@@ -1,0 +1,15 @@
+{
+  "type": "boomood:noisolpxe_itemstack_revert",
+  "cause": {
+    "item": "minecraft:coal"
+  },
+  "upper_bound": 1,
+  "lower_bound": 3,
+  "situations": [
+    {
+      "type": "entity_death",
+      "weight": 100,
+      "entity": "minecraft:wither_skeleton"
+    }
+  ]
+}

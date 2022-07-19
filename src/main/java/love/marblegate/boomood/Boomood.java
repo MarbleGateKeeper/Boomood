@@ -10,7 +10,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 public class Boomood {
     public static String MOD_ID = "boomood";
 
-    public Boomood(){
+    public Boomood() {
         ItemRegistry.ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
         EntityRegistry.ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
         RecipeRegistry.RECIPE_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());

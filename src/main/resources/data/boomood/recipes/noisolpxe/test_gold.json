@@ -1,0 +1,15 @@
+{
+  "type": "boomood:noisolpxe_itemstack_revert",
+  "cause": {
+    "item": "minecraft:raw_gold"
+  },
+  "upper_bound": 1,
+  "lower_bound": 1,
+  "situations": [
+    {
+      "type": "block_destruction",
+      "weight": 100,
+      "block": "minecraft:gold_ore"
+    }
+  ]
+}

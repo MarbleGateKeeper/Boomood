@@ -1,7 +1,6 @@
 package love.marblegate.boomood.registry;
 
 import love.marblegate.boomood.Boomood;
-
 import love.marblegate.boomood.entity.TntEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
