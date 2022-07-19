@@ -1,44 +1,52 @@
 package love.marblegate.boomood.mechanism.noisolpxe;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.Codec;
 import love.marblegate.boomood.config.Configuration;
+import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.StateHolder;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
-public abstract class NoisolpxeItemStackDropSituationHandler {
+public abstract class ItemStackDropSituationHandler {
     protected static Random RND = new Random();
 
-    public static NoisolpxeItemStackDropSituationHandler createArmorHandler() {
+    public static ItemStackDropSituationHandler createArmorHandler() {
         return new ArmorStandDestruction();
     }
 
-    public static NoisolpxeItemStackDropSituationHandler createDefaultHandler() {
+    public static ItemStackDropSituationHandler createDefaultHandler() {
         return new ChestDestruction();
     }
 
@@ -50,25 +58,25 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
 
     abstract List<List<ItemStack>> mergeItemStack(List<List<ItemStack>> itemStackListList);
 
-    static NoisolpxeItemStackDropSituationHandler create(JsonObject jsonObject) {
+    static ItemStackDropSituationHandler create(JsonObject jsonObject) {
         var st = GsonHelper.getAsString(jsonObject, "type");
         return switch (st) {
             case "entity_death" -> new EntityDeath(jsonObject);
             case "chest_destruction" -> new ChestDestruction();
             case "item_frame_destruction" -> new ItemFrameDestruction();
             case "armor_stand_destruction" -> new ArmorStandDestruction();
-            case "block_destruction" -> new BlockDestruction(jsonObject, properties, tag);
+            case "block_destruction" -> new BlockDestruction(jsonObject);
             default -> throw new JsonSyntaxException("Expected type to be \"entity_death\", \"chest_destruction\", \"item_frame_destruction\", \"armor_stand_destruction\" or \"block_destruction\", was " + st);
         };
     }
 
-    static NoisolpxeItemStackDropSituationHandler fromNetwork(FriendlyByteBuf packetBuffer) {
+    static ItemStackDropSituationHandler fromNetwork(FriendlyByteBuf packetBuffer) {
         var st = packetBuffer.readByte();
         if (st == 1) {
             var rl = packetBuffer.readResourceLocation();
             var entityType = ForgeRegistries.ENTITIES.getValue(rl);
             if (entityType == null) {
-                throw new JsonSyntaxException("NoisolpxeItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue. Invalid entity type: " + rl);
+                throw new JsonSyntaxException("ItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue. Invalid entity type: " + rl);
             }
             return new EntityDeath(entityType);
         } else if (st == 2) {
@@ -78,31 +86,31 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
         } else if (st == 4) {
             return new ArmorStandDestruction();
         } else if (st == 5) {
-            var rl = packetBuffer.readResourceLocation();
-            var block = ForgeRegistries.BLOCKS.getValue(rl);
-            if (block == null) {
-                throw new JsonSyntaxException("NoisolpxeItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue. Invalid block: " + rl);
+            var blockstateNbt = packetBuffer.readNbt();
+            var hasNbt = packetBuffer.readBoolean();
+            CompoundTag tags = null;
+            if(hasNbt){
+                 tags = packetBuffer.readNbt();
             }
-            return new BlockDestruction(block, properties, tag);
+            return new BlockDestruction(NbtUtils.readBlockState(blockstateNbt), tags);
         } else
-            throw new RuntimeException("NoisolpxeItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue");
+            throw new RuntimeException("ItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue");
     }
 
-    static class BlockDestruction extends NoisolpxeItemStackDropSituationHandler {
-        private final Block block;
-        @Nullable private final Set<Property.Value<? extends Comparable<?>>> properties;
+    static class BlockDestruction extends ItemStackDropSituationHandler {
+        private final BlockState blockState;
         @Nullable private final CompoundTag tags;
 
         BlockDestruction(JsonObject jsonObject) {
             var bs = GsonHelper.getAsString(jsonObject, "block");
-            block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(bs));
+            var block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(bs));
             if (block == null) {
                 throw new JsonSyntaxException("Invalid block: " + bs);
             }
             if(jsonObject.has("nbt")){
-                var nbtString = GsonHelper.getAsString(jsonObject, "nbt");
+                var nbtString = GsonHelper.getAsJsonObject(jsonObject, "nbt");
                 try{
-                    tags = TagParser.parseTag(nbtString);
+                    tags = TagParser.parseTag(nbtString.toString());
                 } catch (CommandSyntaxException e) {
                     throw new JsonSyntaxException("Invalid block nbt: " + nbtString);
                 }
@@ -110,77 +118,67 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
                 tags = null;
             }
             if(jsonObject.has("property")){
-                properties = new HashSet<>();
-                for(var entry: GsonHelper.getAsJsonObject(jsonObject, "property").entrySet()){
-                    var property = block.getStateDefinition().getProperty(entry.getKey());
-                    if(property == null){
-                        throw new JsonSyntaxException("Invalid block property key: " + entry.getKey());
+                var propertyEntryJson = GsonHelper.getAsJsonObject(jsonObject, "property");
+                if(propertyEntryJson.size()==0){
+                    blockState = block.defaultBlockState();
+                } else {
+                    // Verify Property
+                    for(var entry: propertyEntryJson.entrySet()){
+                        var property = block.getStateDefinition().getProperty(entry.getKey());
+                        if(property == null){
+                            throw new JsonSyntaxException("Invalid block property key: " + entry.getKey());
+                        }
+                        Optional<? extends Comparable<?>> optional = property.getValue(entry.getValue().getAsString());
+                        if(optional.isEmpty()){
+                            throw new JsonSyntaxException("Invalid block property value: " + entry.getValue().getAsString());
+                        }
                     }
-                    Optional<? extends Comparable<?>> optional = property.getValue(entry.getValue().getAsString());
-                    if(optional.isEmpty()){
-                        throw new JsonSyntaxException("Invalid block property value: " + entry.getValue().getAsString());
+                    var tempTag = new CompoundTag();
+                    tempTag.putString("Name",bs);
+                    try{
+                        tempTag.put("Properties",TagParser.parseTag(propertyEntryJson.toString()));
+                    } catch (CommandSyntaxException e) {
+                        throw new JsonSyntaxException("Invalid block property: " + propertyEntryJson.toString());
                     }
-                    properties.add(property.value(optional.get()));
+                    blockState = NbtUtils.readBlockState(tempTag);
                 }
             } else {
-                properties = null;
+                blockState = block.defaultBlockState();
             }
 
         }
 
-        BlockDestruction(Block block, @Nullable Map<Property<?>, Comparable<?>> properties, @Nullable CompoundTag tags) {
-            this.block = block;
-            this.properties = properties;
+        BlockDestruction(BlockState blockState, @Nullable CompoundTag tags) {
+            this.blockState = blockState;
             this.tags = tags;
         }
 
         @Override
         public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
-            var offset = Configuration.NOISOLPXE_HORIZONTAL_RADIUS.get();
-            var tryTime = 0;
-            var suggest_height_limit = blockPos.getY() + Configuration.NOISOLPXE_SUGGESTED_VERTICAL_HEIGHT.get();
-            var destination = blockPos.east((int) Math.round(offset * RND.nextGaussian(0,0.334))).south((int) Math.round(offset * RND.nextGaussian(0,0.334)));
-            while(!level.getBlockState(destination).is(Blocks.AIR)){
-                destination = destination.above();
-                if(tryTime<3 && destination.getY()>suggest_height_limit){
-                    destination = blockPos.east((int) Math.round(offset * RND.nextGaussian(0,0.334))).south((int) Math.round(offset * RND.nextGaussian(0,0.334)));
-                    tryTime ++;
-                    continue;
-                }
-                // Height Limit
-                if(destination.getY()>256){
-                   break; // Give the f**k up
-                }
-            }
+            var optional = MiscUtils.randomizeDestination(level,blockPos);
+            if(optional.isEmpty()) return;
+            var destination = optional.get();
             // Falling block should have support block
-            if(block instanceof FallingBlock && level.getBlockState(destination.below()).is(Blocks.AIR)){
-                // TODO what is good for support block?
-                level.setBlockAndUpdate(destination.below(),Blocks.GLASS.defaultBlockState());
+            if(blockState.getBlock() instanceof FallingBlock && level.getBlockState(destination.below()).is(Blocks.AIR)){
+                level.setBlockAndUpdate(destination.below(), MiscUtils.getSupportBlock());
             }
-            level.setBlockAndUpdate(destination,block.defaultBlockState());
+            level.setBlockAndUpdate(destination,blockState);
             if(tags !=null){
                 BlockEntity blockentity = level.getBlockEntity(destination);
                 if (blockentity != null) {
                     blockentity.load(tags);
                 }
             }
-            // TODO custom add particle effect for indication & add implement explosion particle
+            // TODO add custom particle effect for indication & add implement explosion particle
         }
 
         @Override
         void toNetwork(FriendlyByteBuf packetBuffer) {
             packetBuffer.writeByte(1);
-            packetBuffer.writeResourceLocation(block.getRegistryName());
+            packetBuffer.writeNbt(NbtUtils.writeBlockState(blockState));
             packetBuffer.writeBoolean(tags!=null);
             if(tags!=null){
                 packetBuffer.writeNbt(tags);
-            }
-            packetBuffer.writeBoolean(properties!=null);
-            if(properties!=null){
-                for(var entry:properties.entrySet()){
-                    packetBuffer.writeWithCodec((Codec<Property<? extends Comparable<?>>>) entry.getKey().codec(),entry.getKey());
-                    packetBuffer.<Property.Value<?>>writeWithCodec(entry.getKey().valueCodec(),entry.getValue());
-                }
             }
         }
 
@@ -197,11 +195,32 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
         }
     }
 
-    static class ArmorStandDestruction extends NoisolpxeItemStackDropSituationHandler {
+    static class ArmorStandDestruction extends ItemStackDropSituationHandler {
 
         @Override
         public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
-            //TODO
+            var optional = MiscUtils.randomizeDestination(level,blockPos);
+            if(optional.isEmpty()) return;
+            var destination = optional.get();
+            // Armor stand should have support block
+            if(level.getBlockState(destination.below()).is(Blocks.AIR)){
+                level.setBlockAndUpdate(destination.below(), MiscUtils.getSupportBlock());
+            }
+            Vec3 vec3 = Vec3.atBottomCenterOf(destination);
+            AABB aabb = EntityType.ARMOR_STAND.getDimensions().makeBoundingBox(vec3.x(), vec3.y(), vec3.z());
+            if (level.noCollision((Entity)null, aabb) && level.getEntities((Entity)null, aabb).isEmpty()){
+                ArmorStand armorStand = new ArmorStand(level,vec3.x,vec3.y,vec3.z);
+                if(Configuration.NOISOLPXE_ARMOR_STAND_POSE_RANDOMIZE.get()){
+                    armorStand.moveTo(armorStand.getX(), armorStand.getY(), armorStand.getZ(), (float) (Math.random() * 360), 0.0F);
+                    MiscUtils.randomizeArmorStandPose(armorStand);
+                }
+                for(var itemStack: itemStacks){
+                    EquipmentSlot equipmentslot = Mob.getEquipmentSlotForItem(itemStack);
+                    armorStand.setItemSlot(equipmentslot,itemStack);
+                }
+                level.addFreshEntity(armorStand);
+            }
+            // TODO add custom particle effect for indication & add implement explosion particle
         }
 
         @Override
@@ -240,11 +259,27 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
         }
     }
 
-    static class ChestDestruction extends NoisolpxeItemStackDropSituationHandler {
+    static class ChestDestruction extends ItemStackDropSituationHandler {
 
         @Override
         public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
-            //TODO
+            var optional = MiscUtils.randomizeDestination(level,blockPos);
+            if(optional.isEmpty()) return;
+            var destination = optional.get();
+            var facings = ChestBlock.FACING.getAllValues().toList().stream().map(Property.Value::value).toList();
+            level.setBlockAndUpdate(destination,Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING,facings.get(new Random().nextInt(facings.size()))));
+            BlockEntity chestBlockEntity = level.getBlockEntity(destination);
+            var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+            if(itemhandler.isPresent()){
+                itemhandler.ifPresent(cap->{
+                    int i = 0;
+                    for(var itemStack: itemStacks){
+                        cap.insertItem(i, itemStack, false);
+                        i++;
+                    }
+                });
+            }
+            // TODO add custom particle effect for indication & add implement explosion particle
         }
 
         @Override
@@ -277,7 +312,7 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
         }
     }
 
-    static class ItemFrameDestruction extends NoisolpxeItemStackDropSituationHandler {
+    static class ItemFrameDestruction extends ItemStackDropSituationHandler {
 
         @Override
         public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
@@ -311,7 +346,7 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
         }
     }
 
-    static class EntityDeath extends NoisolpxeItemStackDropSituationHandler {
+    static class EntityDeath extends ItemStackDropSituationHandler {
         private final EntityType<?> entityType;
 
         EntityDeath(JsonObject jsonObject) {

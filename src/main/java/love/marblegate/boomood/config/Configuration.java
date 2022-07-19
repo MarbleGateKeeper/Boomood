@@ -10,6 +10,8 @@ public class Configuration {
     public static ForgeConfigSpec.IntValue NOISOLPXE_DEPTH;
     public static ForgeConfigSpec.BooleanValue NOISOLPXE_CREATE_TNT;
 
+    public static ForgeConfigSpec.BooleanValue NOISOLPXE_ARMOR_STAND_POSE_RANDOMIZE;
+
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
@@ -22,6 +24,8 @@ public class Configuration {
                 .defineInRange("NOISOLPXE_DEPTH", 1, 1, 16);
         NOISOLPXE_CREATE_TNT = builder.comment("Will the reverting process put tnt block back?")
                 .define("NOISOLPXE_CREATE_TNT", true);
+        NOISOLPXE_ARMOR_STAND_POSE_RANDOMIZE = builder.comment("Will the reverting process put armor stand with randomized pose?")
+                .define("NOISOLPXE_ARMOR_STAND_POSE_RANDOMIZE", true);
         builder.pop();
 
         MOD_CONFIG = builder.build();

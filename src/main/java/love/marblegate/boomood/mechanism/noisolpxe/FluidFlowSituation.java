@@ -11,7 +11,7 @@ import net.minecraft.world.phys.AABB;
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
-public class NoisolpxeFluidFlowSituation implements NoisolpxeSituation {
+public class FluidFlowSituation implements Situation {
 
     private final Predicate<Fluid> revertNonSource;
     private final Predicate<Fluid> revertAll;
@@ -20,7 +20,7 @@ public class NoisolpxeFluidFlowSituation implements NoisolpxeSituation {
     private static final Predicate<Fluid> ALL = fluid -> true;
     private static final Predicate<Fluid> NONE = fluid -> false;
 
-    NoisolpxeFluidFlowSituation(@Nullable Predicate<Fluid> revertNonSource, @Nullable Predicate<Fluid> revertAll, AABB area) {
+    FluidFlowSituation(@Nullable Predicate<Fluid> revertNonSource, @Nullable Predicate<Fluid> revertAll, AABB area) {
         this.area = area;
         if (revertNonSource == null) this.revertNonSource = ALL;
         else this.revertNonSource = revertNonSource;

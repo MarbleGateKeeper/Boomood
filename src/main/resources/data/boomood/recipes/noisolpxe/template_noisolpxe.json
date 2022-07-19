@@ -7,29 +7,18 @@
   "lower_bound": 1,
   "situations": [
     {
-      "type": "entity_death",
-      "weight": 100,
-      "entity": "minecraft:zombie",
-      "condition": {
-        "biome": {
-          "type": "blocklist",
-          "content": [
-            "minecraft:the_void",
-            "minecraft:mushroom_fields"
-          ]
-        }
-      }
-    },
-    {
-      "type": "entity_death",
-      "weight": 100,
-      "entity": "minecraft:creeper",
+      "type": "chest_destruction",
+      "weight": 50,
       "condition": {
         "biome": {
           "type": "allowlist",
           "content": [
             "minecraft:plains"
           ]
+        },
+        "height": {
+          "type": "less",
+          "content": 240
         }
       }
     },
@@ -37,47 +26,44 @@
       "type": "chest_destruction",
       "weight": 50,
       "condition": {
+        "biome": {
+          "type": "blocklist",
+          "content": [
+            "minecraft:the_void"
+          ]
+        },
         "height": {
           "type": "greater",
-          "content": 60
+          "content": 30
         }
       }
+    },
+    {
+      "type": "entity_death",
+      "weight": 100,
+      "entity": "minecraft:zombie"
+    },
+    {
+      "type": "chest_destruction",
+      "weight": 50
     },
     {
       "type": "item_frame_destruction",
-      "weight": 50,
-      "condition": {
-        "height": {
-          "type": "greater",
-          "content": 70
-        }
-      }
+      "weight": 50
     },
     {
       "type": "armor_stand_destruction",
-      "weight": 50,
-      "condition": {
-        "height": {
-          "type": "greater",
-          "content": 80
-        }
-      }
+      "weight": 50
     },
     {
       "type": "block_destruction",
-      "weight": 100,
-      "block": "minecraft:deepslate_iron_ore",
-      "condition": {
-        "height": {
-          "type": "less",
-          "content": 48
-        },
-        "biome": {
-          "type": "allowlist",
-          "content": [
-            "minecraft:plains"
-          ]
-        }
+      "weight": 500,
+      "block": "minecraft:furnace",
+      "property": {
+        "facing": "north"
+      },
+      "nbt": {
+        "BurnTime": 1200
       }
     }
   ]

@@ -16,12 +16,12 @@ import net.minecraft.world.phys.AABB;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class NoisolpxeSituationFactory {
+public class SituationFactory {
 
-    public static NoisolpxeItemStackDropSituation.SituationSet.Raw itemDropRevert(Level level, BlockPos eventCenter, AABB area) {
+    public static ItemStackDropSituation.SituationSet.Raw itemDropRevert(Level level, BlockPos eventCenter, AABB area) {
         var itemStackEntities = level.getEntities((Entity) null, area, entity -> entity instanceof ItemEntity);
         var container = new SimpleContainer(9);
-        NoisolpxeItemStackDropSituation.SituationSet.Raw ret = new NoisolpxeItemStackDropSituation.SituationSet.Raw();
+        ItemStackDropSituation.SituationSet.Raw ret = new ItemStackDropSituation.SituationSet.Raw();
         if (!itemStackEntities.isEmpty()) {
             for (var itemStackEntity : itemStackEntities) {
                 var item = ((ItemEntity) itemStackEntity).getItem();
@@ -39,14 +39,14 @@ public class NoisolpxeSituationFactory {
             }
         }
         while (!container.isEmpty()) {
-            NoisolpxeItemStackEntityRevertRecipe recipe = level.getRecipeManager().getRecipeFor(RecipeRegistry.TYPE_NOISOLPXE_ITEMSTACK_REVERT.get(), container, level).orElse(null);
+            ItemStackEntityRevertRecipe recipe = level.getRecipeManager().getRecipeFor(RecipeRegistry.TYPE_NOISOLPXE_ITEMSTACK_REVERT.get(), container, level).orElse(null);
             if (recipe != null) {
                 var handler = recipe.produceSituationHandler(level, eventCenter);
                 var consumedItems = recipe.consumeItemAfterProduceSituationHandler(container);
                 if (handler.isEmpty()) {
                     handleRemainingItems(consumedItems, ret);
                 } else {
-                    ret.add(NoisolpxeItemStackDropSituation.create(handler.get(), consumedItems));
+                    ret.add(ItemStackDropSituation.create(handler.get(), consumedItems));
                 }
             } else {
                 var leftItems = container.removeAllItems().stream().filter(itemStack -> !itemStack.isEmpty()).toList();
@@ -56,29 +56,29 @@ public class NoisolpxeSituationFactory {
         return ret;
     }
 
-    public static NoisolpxeFluidFlowSituation fluidFlowRevert(Predicate<Fluid> revertNonSource, Predicate<Fluid> revertAll, AABB area) {
-        return new NoisolpxeFluidFlowSituation(revertNonSource, revertAll, area);
+    public static FluidFlowSituation fluidFlowRevert(Predicate<Fluid> revertNonSource, Predicate<Fluid> revertAll, AABB area) {
+        return new FluidFlowSituation(revertNonSource, revertAll, area);
     }
 
-    public static NoisolpxeFluidFlowSituation fluidFlowRevert(AABB area) {
+    public static FluidFlowSituation fluidFlowRevert(AABB area) {
         return fluidFlowRevert(null, null, area);
     }
 
-    public static NoisolpxeFireBurnSituation fireBurnRevert(Predicate<Block> isFire, boolean tryFixStructure, AABB area) {
-        return new NoisolpxeFireBurnSituation(isFire, tryFixStructure, area);
+    public static FireBurnSituation fireBurnRevert(Predicate<Block> isFire, boolean tryFixStructure, AABB area) {
+        return new FireBurnSituation(isFire, tryFixStructure, area);
     }
 
-    public static NoisolpxeFireBurnSituation fireBurnRevert(AABB area) {
+    public static FireBurnSituation fireBurnRevert(AABB area) {
         return fireBurnRevert(null, false, area);
     }
 
-    private static void handleRemainingItems(List<ItemStack> items, List<NoisolpxeItemStackDropSituation> destinationList) {
+    private static void handleRemainingItems(List<ItemStack> items, List<ItemStackDropSituation> destinationList) {
         var armorConsumed = items.stream().filter(itemStack -> itemStack.getItem() instanceof ArmorItem).toList();
         if (!armorConsumed.isEmpty())
-            destinationList.add(NoisolpxeItemStackDropSituation.create(NoisolpxeItemStackDropSituationHandler.createArmorHandler(), Lists.newArrayList(armorConsumed)));
+            destinationList.add(ItemStackDropSituation.create(ItemStackDropSituationHandler.createArmorHandler(), Lists.newArrayList(armorConsumed)));
         var commonConsumed = items.stream().filter(itemStack -> !(itemStack.getItem() instanceof ArmorItem)).toList();
         if (!commonConsumed.isEmpty())
-            destinationList.add(NoisolpxeItemStackDropSituation.create(NoisolpxeItemStackDropSituationHandler.createDefaultHandler(), Lists.newArrayList(commonConsumed)));
+            destinationList.add(ItemStackDropSituation.create(ItemStackDropSituationHandler.createDefaultHandler(), Lists.newArrayList(commonConsumed)));
     }
 
 

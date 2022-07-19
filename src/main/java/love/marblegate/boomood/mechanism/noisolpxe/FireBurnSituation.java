@@ -12,7 +12,7 @@ import net.minecraft.world.phys.AABB;
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
-public class NoisolpxeFireBurnSituation implements NoisolpxeSituation {
+public class FireBurnSituation implements Situation {
 
     private final boolean tryFixStructure;
     private final Predicate<Block> isFire;
@@ -20,7 +20,7 @@ public class NoisolpxeFireBurnSituation implements NoisolpxeSituation {
 
     private static final Predicate<Block> DEFAULT_FIRE = block -> block == Blocks.FIRE || block == Blocks.SOUL_FIRE;
 
-    public NoisolpxeFireBurnSituation(@Nullable Predicate<Block> isFire, boolean tryFixStructure, AABB area) {
+    public FireBurnSituation(@Nullable Predicate<Block> isFire, boolean tryFixStructure, AABB area) {
         this.area = area;
         if (isFire == null) this.isFire = DEFAULT_FIRE;
         else this.isFire = isFire;

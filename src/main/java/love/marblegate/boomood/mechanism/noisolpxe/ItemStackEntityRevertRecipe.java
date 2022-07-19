@@ -24,16 +24,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-public class NoisolpxeItemStackEntityRevertRecipe implements Recipe<Container> {
+public class ItemStackEntityRevertRecipe implements Recipe<Container> {
     private final ResourceLocation id;
-    private final List<NoisolpxeItemStackEntityRevertPredicate> noisolpxeItemStackEntityRevertPredicates;
+    private final List<ItemStackEntityRevertPredicate> itemStackEntityRevertPredicates;
     private final Ingredient ingredient;
     private final int lowerBound;
     private final int upperBound;
 
-    NoisolpxeItemStackEntityRevertRecipe(ResourceLocation id, List<NoisolpxeItemStackEntityRevertPredicate> noisolpxeItemStackEntityRevertPredicates, Ingredient ingredient, int lowerBound, int upperBound) {
+    ItemStackEntityRevertRecipe(ResourceLocation id, List<ItemStackEntityRevertPredicate> itemStackEntityRevertPredicates, Ingredient ingredient, int lowerBound, int upperBound) {
         this.id = id;
-        this.noisolpxeItemStackEntityRevertPredicates = noisolpxeItemStackEntityRevertPredicates;
+        this.itemStackEntityRevertPredicates = itemStackEntityRevertPredicates;
         this.ingredient = ingredient;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
@@ -99,13 +99,13 @@ public class NoisolpxeItemStackEntityRevertRecipe implements Recipe<Container> {
     }
 
     // Method for exporting result
-    public Optional<NoisolpxeItemStackDropSituationHandler> produceSituationHandler(LevelAccessor level, BlockPos blockPos) {
-        List<NoisolpxeItemStackEntityRevertPredicate> qualifiedList = noisolpxeItemStackEntityRevertPredicates.stream()
-                .filter(noisolpxeItemStackEntityRevertPredicate -> noisolpxeItemStackEntityRevertPredicate.valid(level, blockPos)).toList();
+    public Optional<ItemStackDropSituationHandler> produceSituationHandler(LevelAccessor level, BlockPos blockPos) {
+        List<ItemStackEntityRevertPredicate> qualifiedList = itemStackEntityRevertPredicates.stream()
+                .filter(itemStackEntityRevertPredicate -> itemStackEntityRevertPredicate.valid(level, blockPos)).toList();
         if (qualifiedList.isEmpty()) {
             return Optional.empty();
         } else {
-            int totalWeight = qualifiedList.stream().map(NoisolpxeItemStackEntityRevertPredicate::getWeight).reduce(0, Integer::sum);
+            int totalWeight = qualifiedList.stream().map(ItemStackEntityRevertPredicate::getWeight).reduce(0, Integer::sum);
             int idx = 0;
             for (double r = Math.random() * totalWeight; idx < qualifiedList.size() - 1; ++idx) {
                 r -= qualifiedList.get(idx).getWeight();
@@ -142,10 +142,10 @@ public class NoisolpxeItemStackEntityRevertRecipe implements Recipe<Container> {
         return ret;
     }
 
-    public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<NoisolpxeItemStackEntityRevertRecipe> {
+    public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<ItemStackEntityRevertRecipe> {
 
         @Override
-        public NoisolpxeItemStackEntityRevertRecipe fromJson(ResourceLocation resourceLocation, JsonObject jsonObject) {
+        public ItemStackEntityRevertRecipe fromJson(ResourceLocation resourceLocation, JsonObject jsonObject) {
             var ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(jsonObject, "cause"));
             var lowerBound = GsonHelper.getAsInt(jsonObject, "lower_bound");
             if (lowerBound <= 0)
@@ -153,35 +153,35 @@ public class NoisolpxeItemStackEntityRevertRecipe implements Recipe<Container> {
             var upperBound = GsonHelper.getAsInt(jsonObject, "upper_bound");
             if (upperBound <= 0 || upperBound < lowerBound)
                 throw new JsonSyntaxException("invalid upperBound in" + resourceLocation.getNamespace() + ":" + resourceLocation.getPath());
-            List<NoisolpxeItemStackEntityRevertPredicate> noisolpxeItemStackEntityRevertPredicates = new ArrayList<>();
+            List<ItemStackEntityRevertPredicate> itemStackEntityRevertPredicates = new ArrayList<>();
             for (var jsonElement : GsonHelper.getAsJsonArray(jsonObject, "situations")) {
-                var np = new NoisolpxeItemStackEntityRevertPredicate(jsonElement.getAsJsonObject());
-                noisolpxeItemStackEntityRevertPredicates.add(np);
+                var np = new ItemStackEntityRevertPredicate(jsonElement.getAsJsonObject());
+                itemStackEntityRevertPredicates.add(np);
             }
-            return new NoisolpxeItemStackEntityRevertRecipe(resourceLocation, noisolpxeItemStackEntityRevertPredicates, ingredient, lowerBound, upperBound);
+            return new ItemStackEntityRevertRecipe(resourceLocation, itemStackEntityRevertPredicates, ingredient, lowerBound, upperBound);
         }
 
         @Nullable
         @Override
-        public NoisolpxeItemStackEntityRevertRecipe fromNetwork(ResourceLocation resourceLocation, FriendlyByteBuf packetBuffer) {
+        public ItemStackEntityRevertRecipe fromNetwork(ResourceLocation resourceLocation, FriendlyByteBuf packetBuffer) {
             var lowerBound = packetBuffer.readInt();
             var upperBound = packetBuffer.readInt();
             var ingredient = Ingredient.fromNetwork(packetBuffer);
             var size = packetBuffer.readInt();
-            List<NoisolpxeItemStackEntityRevertPredicate> noisolpxeItemStackEntityRevertPredicates = new ArrayList<>();
+            List<ItemStackEntityRevertPredicate> itemStackEntityRevertPredicates = new ArrayList<>();
             for (int i = 0; i < size; i++) {
-                noisolpxeItemStackEntityRevertPredicates.add(NoisolpxeItemStackEntityRevertPredicate.fromNetwork(packetBuffer));
+                itemStackEntityRevertPredicates.add(ItemStackEntityRevertPredicate.fromNetwork(packetBuffer));
             }
-            return new NoisolpxeItemStackEntityRevertRecipe(resourceLocation, noisolpxeItemStackEntityRevertPredicates, ingredient, lowerBound, upperBound);
+            return new ItemStackEntityRevertRecipe(resourceLocation, itemStackEntityRevertPredicates, ingredient, lowerBound, upperBound);
         }
 
         @Override
-        public void toNetwork(FriendlyByteBuf packetBuffer, NoisolpxeItemStackEntityRevertRecipe noisolpxeItemStackEntityRevertRecipe) {
-            packetBuffer.writeInt(noisolpxeItemStackEntityRevertRecipe.lowerBound);
-            packetBuffer.writeInt(noisolpxeItemStackEntityRevertRecipe.upperBound);
-            noisolpxeItemStackEntityRevertRecipe.ingredient.toNetwork(packetBuffer);
-            packetBuffer.writeInt(noisolpxeItemStackEntityRevertRecipe.noisolpxeItemStackEntityRevertPredicates.size());
-            for (var np : noisolpxeItemStackEntityRevertRecipe.noisolpxeItemStackEntityRevertPredicates) {
+        public void toNetwork(FriendlyByteBuf packetBuffer, ItemStackEntityRevertRecipe itemStackEntityRevertRecipe) {
+            packetBuffer.writeInt(itemStackEntityRevertRecipe.lowerBound);
+            packetBuffer.writeInt(itemStackEntityRevertRecipe.upperBound);
+            itemStackEntityRevertRecipe.ingredient.toNetwork(packetBuffer);
+            packetBuffer.writeInt(itemStackEntityRevertRecipe.itemStackEntityRevertPredicates.size());
+            for (var np : itemStackEntityRevertRecipe.itemStackEntityRevertPredicates) {
                 np.toNetwork(packetBuffer);
             }
         }

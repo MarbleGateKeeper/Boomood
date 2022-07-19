@@ -8,8 +8,26 @@
   "situations": [
     {
       "type": "block_destruction",
-      "weight": 100,
-      "block": "minecraft:gold_ore"
+      "weight": 500,
+      "block": "minecraft:furnace",
+      "property": {
+        "facing": "north",
+        "lit": true
+      },
+      "nbt": {
+        "BurnTime": 1200
+      }
+    },
+    {
+      "type": "block_destruction",
+      "weight": 500,
+      "block": "minecraft:furnace",
+      "property": {
+        "facing": "west"
+      },
+      "nbt": {
+        "BurnTime": 200
+      }
     }
   ]
 }

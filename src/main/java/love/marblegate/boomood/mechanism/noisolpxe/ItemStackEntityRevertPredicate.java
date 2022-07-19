@@ -13,12 +13,12 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 
-class NoisolpxeItemStackEntityRevertPredicate {
-    private final NoisolpxeItemStackDropSituationHandler handler;
+class ItemStackEntityRevertPredicate {
+    private final ItemStackDropSituationHandler handler;
     private final List<Condition> conditions;
     private final int weight;
 
-    NoisolpxeItemStackEntityRevertPredicate(JsonObject jsonObject) {
+    ItemStackEntityRevertPredicate(JsonObject jsonObject) {
         conditions = new ArrayList<>();
         var conditionJson = jsonObject.getAsJsonObject("condition");
         if (conditionJson != null) {
@@ -30,10 +30,10 @@ class NoisolpxeItemStackEntityRevertPredicate {
                 conditions.add(new BiomePredicate(biomeConditionJson));
         }
         weight = GsonHelper.getAsInt(jsonObject, "weight");
-        handler = NoisolpxeItemStackDropSituationHandler.create(jsonObject);
+        handler = ItemStackDropSituationHandler.create(jsonObject);
     }
 
-    NoisolpxeItemStackEntityRevertPredicate(NoisolpxeItemStackDropSituationHandler handler, List<Condition> conditions, int weight) {
+    ItemStackEntityRevertPredicate(ItemStackDropSituationHandler handler, List<Condition> conditions, int weight) {
         this.handler = handler;
         this.conditions = conditions;
         this.weight = weight;
@@ -55,18 +55,18 @@ class NoisolpxeItemStackEntityRevertPredicate {
         }
     }
 
-    static NoisolpxeItemStackEntityRevertPredicate fromNetwork(FriendlyByteBuf packetBuffer) {
+    static ItemStackEntityRevertPredicate fromNetwork(FriendlyByteBuf packetBuffer) {
         var weight = packetBuffer.readInt();
-        var handler = NoisolpxeItemStackDropSituationHandler.fromNetwork(packetBuffer);
+        var handler = ItemStackDropSituationHandler.fromNetwork(packetBuffer);
         var size = packetBuffer.readInt();
         List<Condition> conditions = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             conditions.add(Condition.fromNetwork(packetBuffer));
         }
-        return new NoisolpxeItemStackEntityRevertPredicate(handler, conditions, weight);
+        return new ItemStackEntityRevertPredicate(handler, conditions, weight);
     }
 
-    public NoisolpxeItemStackDropSituationHandler getHandler() {
+    public ItemStackDropSituationHandler getHandler() {
         return handler;
     }
 

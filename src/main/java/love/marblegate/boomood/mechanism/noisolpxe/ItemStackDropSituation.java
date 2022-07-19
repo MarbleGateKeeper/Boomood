@@ -11,20 +11,20 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-class NoisolpxeItemStackDropSituation implements NoisolpxeSituation {
-    private final NoisolpxeItemStackDropSituationHandler handler;
+class ItemStackDropSituation implements Situation {
+    private final ItemStackDropSituationHandler handler;
     private final List<ItemStack> items;
 
-    NoisolpxeItemStackDropSituation(NoisolpxeItemStackDropSituationHandler handler, List<ItemStack> items) {
+    ItemStackDropSituation(ItemStackDropSituationHandler handler, List<ItemStack> items) {
         this.handler = handler;
         this.items = items;
     }
 
-    static NoisolpxeItemStackDropSituation create(NoisolpxeItemStackDropSituationHandler handler, List<ItemStack> items) {
-        return new NoisolpxeItemStackDropSituation(handler, items);
+    static ItemStackDropSituation create(ItemStackDropSituationHandler handler, List<ItemStack> items) {
+        return new ItemStackDropSituation(handler, items);
     }
 
-    NoisolpxeItemStackDropSituationHandler getHandler() {
+    ItemStackDropSituationHandler getHandler() {
         return handler;
     }
 
@@ -43,7 +43,7 @@ class NoisolpxeItemStackDropSituation implements NoisolpxeSituation {
     }
 
 
-    public static class SituationSet extends ArrayList<NoisolpxeItemStackDropSituation> {
+    public static class SituationSet extends ArrayList<ItemStackDropSituation> {
 
         public void revert(Level level, BlockPos pos, Player player) {
             for (var situation : this) {
@@ -57,7 +57,7 @@ class NoisolpxeItemStackDropSituation implements NoisolpxeSituation {
 
             // Merge ItemStack for properly reverting
             public Unordered merge() {
-                Multimap<NoisolpxeItemStackDropSituationHandler, List<ItemStack>> mergeMap = MultimapBuilder.hashKeys().arrayListValues().build();
+                Multimap<ItemStackDropSituationHandler, List<ItemStack>> mergeMap = MultimapBuilder.hashKeys().arrayListValues().build();
                 Unordered ret = new Unordered();
                 for (var situation : this) {
                     mergeMap.put(situation.getHandler(), situation.getItems());
@@ -65,7 +65,7 @@ class NoisolpxeItemStackDropSituation implements NoisolpxeSituation {
                 for (var key : mergeMap.keySet()) {
                     var unmerged = mergeMap.get(key).stream().toList();
                     for (var merged : key.mergeItemStack(unmerged)) {
-                        ret.add(new NoisolpxeItemStackDropSituation(key, merged));
+                        ret.add(new ItemStackDropSituation(key, merged));
                     }
                 }
                 return ret;
