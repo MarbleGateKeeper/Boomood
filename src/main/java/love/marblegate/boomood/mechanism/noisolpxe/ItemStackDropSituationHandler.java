@@ -1,11 +1,15 @@
 package love.marblegate.boomood.mechanism.noisolpxe;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.Codec;
 import love.marblegate.boomood.config.Configuration;
-import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -19,11 +23,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FallingBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.StateHolder;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import javax.annotation.Nullable;
+import java.util.*;
 
 public abstract class NoisolpxeItemStackDropSituationHandler {
     protected static Random RND = new Random();
@@ -51,7 +57,7 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
             case "chest_destruction" -> new ChestDestruction();
             case "item_frame_destruction" -> new ItemFrameDestruction();
             case "armor_stand_destruction" -> new ArmorStandDestruction();
-            case "block_destruction" -> new BlockDestruction(jsonObject);
+            case "block_destruction" -> new BlockDestruction(jsonObject, properties, tag);
             default -> throw new JsonSyntaxException("Expected type to be \"entity_death\", \"chest_destruction\", \"item_frame_destruction\", \"armor_stand_destruction\" or \"block_destruction\", was " + st);
         };
     }
@@ -77,13 +83,15 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
             if (block == null) {
                 throw new JsonSyntaxException("NoisolpxeItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue. Invalid block: " + rl);
             }
-            return new BlockDestruction(block);
+            return new BlockDestruction(block, properties, tag);
         } else
             throw new RuntimeException("NoisolpxeItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue");
     }
 
     static class BlockDestruction extends NoisolpxeItemStackDropSituationHandler {
         private final Block block;
+        @Nullable private final Set<Property.Value<? extends Comparable<?>>> properties;
+        @Nullable private final CompoundTag tags;
 
         BlockDestruction(JsonObject jsonObject) {
             var bs = GsonHelper.getAsString(jsonObject, "block");
@@ -91,10 +99,39 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
             if (block == null) {
                 throw new JsonSyntaxException("Invalid block: " + bs);
             }
+            if(jsonObject.has("nbt")){
+                var nbtString = GsonHelper.getAsString(jsonObject, "nbt");
+                try{
+                    tags = TagParser.parseTag(nbtString);
+                } catch (CommandSyntaxException e) {
+                    throw new JsonSyntaxException("Invalid block nbt: " + nbtString);
+                }
+            } else {
+                tags = null;
+            }
+            if(jsonObject.has("property")){
+                properties = new HashSet<>();
+                for(var entry: GsonHelper.getAsJsonObject(jsonObject, "property").entrySet()){
+                    var property = block.getStateDefinition().getProperty(entry.getKey());
+                    if(property == null){
+                        throw new JsonSyntaxException("Invalid block property key: " + entry.getKey());
+                    }
+                    Optional<? extends Comparable<?>> optional = property.getValue(entry.getValue().getAsString());
+                    if(optional.isEmpty()){
+                        throw new JsonSyntaxException("Invalid block property value: " + entry.getValue().getAsString());
+                    }
+                    properties.add(property.value(optional.get()));
+                }
+            } else {
+                properties = null;
+            }
+
         }
 
-        BlockDestruction(Block block) {
+        BlockDestruction(Block block, @Nullable Map<Property<?>, Comparable<?>> properties, @Nullable CompoundTag tags) {
             this.block = block;
+            this.properties = properties;
+            this.tags = tags;
         }
 
         @Override
@@ -121,6 +158,12 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
                 level.setBlockAndUpdate(destination.below(),Blocks.GLASS.defaultBlockState());
             }
             level.setBlockAndUpdate(destination,block.defaultBlockState());
+            if(tags !=null){
+                BlockEntity blockentity = level.getBlockEntity(destination);
+                if (blockentity != null) {
+                    blockentity.load(tags);
+                }
+            }
             // TODO custom add particle effect for indication & add implement explosion particle
         }
 
@@ -128,6 +171,17 @@ public abstract class NoisolpxeItemStackDropSituationHandler {
         void toNetwork(FriendlyByteBuf packetBuffer) {
             packetBuffer.writeByte(1);
             packetBuffer.writeResourceLocation(block.getRegistryName());
+            packetBuffer.writeBoolean(tags!=null);
+            if(tags!=null){
+                packetBuffer.writeNbt(tags);
+            }
+            packetBuffer.writeBoolean(properties!=null);
+            if(properties!=null){
+                for(var entry:properties.entrySet()){
+                    packetBuffer.writeWithCodec((Codec<Property<? extends Comparable<?>>>) entry.getKey().codec(),entry.getKey());
+                    packetBuffer.<Property.Value<?>>writeWithCodec(entry.getKey().valueCodec(),entry.getValue());
+                }
+            }
         }
 
         @Override
