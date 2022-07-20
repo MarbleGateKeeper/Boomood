@@ -1,16 +1,22 @@
 package love.marblegate.boomood.mechanism.noisolpxe;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.JsonOps;
 import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.NbtComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.SimpleContainer;
@@ -29,6 +35,7 @@ import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateHolder;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -52,9 +59,9 @@ public abstract class ItemStackDropSituationHandler {
 
     abstract void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator);
 
-    abstract void toNetwork(FriendlyByteBuf packetBuffer);
-
     abstract int priority();
+
+    abstract JsonObject toJson();
 
     abstract List<List<ItemStack>> mergeItemStack(List<List<ItemStack>> itemStackListList);
 
@@ -68,33 +75,6 @@ public abstract class ItemStackDropSituationHandler {
             case "block_destruction" -> new BlockDestruction(jsonObject);
             default -> throw new JsonSyntaxException("Expected type to be \"entity_death\", \"chest_destruction\", \"item_frame_destruction\", \"armor_stand_destruction\" or \"block_destruction\", was " + st);
         };
-    }
-
-    static ItemStackDropSituationHandler fromNetwork(FriendlyByteBuf packetBuffer) {
-        var st = packetBuffer.readByte();
-        if (st == 5) {
-            var rl = packetBuffer.readResourceLocation();
-            var entityType = ForgeRegistries.ENTITIES.getValue(rl);
-            if (entityType == null) {
-                throw new JsonSyntaxException("ItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue. Invalid entity type: " + rl);
-            }
-            return new EntityDeath(entityType);
-        } else if (st == 3) {
-            return new ChestDestruction();
-        } else if (st == 4) {
-            return new ItemFrameDestruction();
-        } else if (st == 2) {
-            return new ArmorStandDestruction();
-        } else if (st == 1) {
-            var blockstateNbt = packetBuffer.readNbt();
-            var hasNbt = packetBuffer.readBoolean();
-            CompoundTag tags = null;
-            if(hasNbt){
-                 tags = packetBuffer.readNbt();
-            }
-            return new BlockDestruction(NbtUtils.readBlockState(blockstateNbt), tags);
-        } else
-            throw new RuntimeException("ItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue");
     }
 
     static class BlockDestruction extends ItemStackDropSituationHandler {
@@ -172,15 +152,6 @@ public abstract class ItemStackDropSituationHandler {
             // TODO add custom particle effect for indication & add implement explosion particle
         }
 
-        @Override
-        void toNetwork(FriendlyByteBuf packetBuffer) {
-            packetBuffer.writeByte(1);
-            packetBuffer.writeNbt(NbtUtils.writeBlockState(blockState));
-            packetBuffer.writeBoolean(tags!=null);
-            if(tags!=null){
-                packetBuffer.writeNbt(tags);
-            }
-        }
 
         @Override
         int priority() {
@@ -188,10 +159,34 @@ public abstract class ItemStackDropSituationHandler {
         }
 
         @Override
+        JsonObject toJson() {
+            var ret = new JsonObject();
+            ret.addProperty("type","block_destruction");
+            ret.addProperty("block",blockState.getBlock().getRegistryName().toString());
+            CompoundTag propertiesTag = new CompoundTag();
+            ImmutableMap<Property<?>, Comparable<?>> immutablemap = blockState.getValues();
+            for(Map.Entry<Property<?>, Comparable<?>> entry : immutablemap.entrySet()) {
+                Property<?> property = entry.getKey();
+                propertiesTag.putString(property.getName(), getName(property, entry.getValue()));
+            }
+            var propertiesJson = NbtOps.INSTANCE.convertTo(JsonOps.INSTANCE, propertiesTag);
+            ret.add("property",propertiesJson);
+            if(tags!=null){
+                var nbtJson = CompoundTag.CODEC.encodeStart(JsonOps.INSTANCE,tags);
+                ret.add("nbt",propertiesJson);
+            }
+            return ret;
+        }
+
+        @Override
         public List<List<ItemStack>> mergeItemStack(List<List<ItemStack>> itemStackListList) {
             // For reverting block destruction, how itemStack arrangement is preprocessed is irrelevant.
             // So just return what is passed in.
             return itemStackListList;
+        }
+
+        private static <T extends Comparable<T>> String getName(Property<T> p_129211_, Comparable<?> p_129212_) {
+            return p_129211_.getName((T)p_129212_);
         }
     }
 
@@ -224,13 +219,15 @@ public abstract class ItemStackDropSituationHandler {
         }
 
         @Override
-        void toNetwork(FriendlyByteBuf packetBuffer) {
-            packetBuffer.writeByte(2);
+        int priority() {
+            return 30;
         }
 
         @Override
-        int priority() {
-            return 30;
+        JsonObject toJson() {
+            var ret = new JsonObject();
+            ret.addProperty("type","armor_stand_destruction");
+            return ret;
         }
 
         @Override
@@ -282,14 +279,17 @@ public abstract class ItemStackDropSituationHandler {
             // TODO add custom particle effect for indication & add implement explosion particle
         }
 
-        @Override
-        void toNetwork(FriendlyByteBuf packetBuffer) {
-            packetBuffer.writeByte(3);
-        }
 
         @Override
         int priority() {
             return 50;
+        }
+
+        @Override
+        JsonObject toJson() {
+            var ret = new JsonObject();
+            ret.addProperty("type","chest_destruction");
+            return ret;
         }
 
         @Override
@@ -320,11 +320,6 @@ public abstract class ItemStackDropSituationHandler {
         }
 
         @Override
-        void toNetwork(FriendlyByteBuf packetBuffer) {
-            packetBuffer.writeByte(4);
-        }
-
-        @Override
         int priority() {
             return 40;
         }
@@ -342,6 +337,13 @@ public abstract class ItemStackDropSituationHandler {
                     ret.add(putIn);
                 }
             }));
+            return ret;
+        }
+
+        @Override
+        JsonObject toJson() {
+            var ret = new JsonObject();
+            ret.addProperty("type","item_frame_destruction");
             return ret;
         }
     }
@@ -367,12 +369,6 @@ public abstract class ItemStackDropSituationHandler {
         }
 
         @Override
-        void toNetwork(FriendlyByteBuf packetBuffer) {
-            packetBuffer.writeByte(5);
-            packetBuffer.writeResourceLocation(entityType.getRegistryName());
-        }
-
-        @Override
         int priority() {
             return 0;
         }
@@ -382,6 +378,14 @@ public abstract class ItemStackDropSituationHandler {
             // For reverting entity death, how itemStack arrangement is preprocessed is irrelevant.
             // So just return what is passed in.
             return itemStackListList;
+        }
+
+        @Override
+        JsonObject toJson() {
+            var ret = new JsonObject();
+            ret.addProperty("type","entity_death");
+            ret.addProperty("entity",entityType.getRegistryName().toString());
+            return ret;
         }
     }
 }

@@ -7,27 +7,31 @@
   "lower_bound": 1,
   "situations": [
     {
-      "type": "block_destruction",
-      "weight": 500,
-      "block": "minecraft:furnace",
-      "property": {
-        "facing": "north",
-        "lit": true
+      "detail": {
+        "type":"block_destruction",
+        "block": "minecraft:furnace",
+        "property": {
+          "facing": "north",
+          "lit": true
+        },
+        "nbt": {
+          "BurnTime": 1200
+        }
       },
-      "nbt": {
-        "BurnTime": 1200
-      }
+      "weight": 500
     },
     {
-      "type": "block_destruction",
-      "weight": 500,
-      "block": "minecraft:furnace",
-      "property": {
-        "facing": "west"
+      "detail": {
+        "type":"block_destruction",
+        "block": "minecraft:furnace",
+        "property": {
+          "facing": "west"
+        },
+        "nbt": {
+          "BurnTime": 200
+        }
       },
-      "nbt": {
-        "BurnTime": 200
-      }
+      "weight": 500
     }
   ]
 }

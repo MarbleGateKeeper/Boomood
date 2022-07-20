@@ -7,7 +7,9 @@
   "lower_bound": 1,
   "situations": [
     {
-      "type": "chest_destruction",
+      "detail": {
+        "type":"chest_destruction"
+      },
       "weight": 50
     }
   ]

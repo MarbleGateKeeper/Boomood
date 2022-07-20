@@ -7,9 +7,11 @@
   "lower_bound": 1,
   "situations": [
     {
-      "type": "block_destruction",
-      "weight": 100,
-      "block": "minecraft:sand"
+      "detail": {
+        "type":"armor_stand_destruction",
+        "block": "minecraft:sand"
+      },
+      "weight": 100
     }
   ]
 }
