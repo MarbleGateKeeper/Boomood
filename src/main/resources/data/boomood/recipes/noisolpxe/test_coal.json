@@ -7,9 +7,11 @@
   "lower_bound": 1,
   "situations": [
     {
-      "type": "entity_death",
-      "weight": 100,
-      "entity": "minecraft:wither_skeleton"
+      "detail": {
+        "type":"entity_death",
+        "entity": "minecraft:wither_skeleton"
+      },
+      "weight": 100
     }
   ]
 }

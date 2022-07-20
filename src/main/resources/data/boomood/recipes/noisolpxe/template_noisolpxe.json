@@ -7,7 +7,9 @@
   "lower_bound": 1,
   "situations": [
     {
-      "type": "chest_destruction",
+      "detail": {
+        "type":"chest_destruction"
+      },
       "weight": 50,
       "condition": {
         "biome": {
@@ -23,7 +25,9 @@
       }
     },
     {
-      "type": "chest_destruction",
+      "detail": {
+        "type":"chest_destruction"
+      },
       "weight": 50,
       "condition": {
         "biome": {
@@ -39,32 +43,42 @@
       }
     },
     {
-      "type": "entity_death",
-      "weight": 100,
-      "entity": "minecraft:zombie"
-    },
-    {
-      "type": "chest_destruction",
-      "weight": 50
-    },
-    {
-      "type": "item_frame_destruction",
-      "weight": 50
-    },
-    {
-      "type": "armor_stand_destruction",
-      "weight": 50
-    },
-    {
-      "type": "block_destruction",
-      "weight": 500,
-      "block": "minecraft:furnace",
-      "property": {
-        "facing": "north"
+      "detail": {
+        "type":"entity_death",
+        "entity": "minecraft:zombie"
       },
-      "nbt": {
-        "BurnTime": 1200
-      }
+      "weight": 100
+    },
+    {
+      "detail": {
+        "type":"chest_destruction"
+      },
+      "weight": 50
+    },
+    {
+      "detail": {
+        "type":"item_frame_destruction"
+      },
+      "weight": 50
+    },
+    {
+      "detail": {
+        "type":"armor_stand_destruction"
+      },
+      "weight": 50
+    },
+    {
+      "detail": {
+        "type":"block_destruction",
+        "block": "minecraft:furnace",
+        "property": {
+          "facing": "north"
+        },
+        "nbt": {
+          "BurnTime": 1200
+        }
+      },
+      "weight": 500
     }
   ]
 }

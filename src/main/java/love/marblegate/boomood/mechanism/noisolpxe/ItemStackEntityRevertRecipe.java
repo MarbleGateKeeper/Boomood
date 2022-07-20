@@ -2,11 +2,11 @@ package love.marblegate.boomood.mechanism.noisolpxe;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.JsonOps;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -142,48 +142,42 @@ public class ItemStackEntityRevertRecipe implements Recipe<Container> {
         return ret;
     }
 
+    public List<ItemStackEntityRevertPredicate> getItemStackEntityRevertPredicates() {
+        return itemStackEntityRevertPredicates;
+    }
+
+    public Ingredient getIngredient() {
+        return ingredient;
+    }
+
+    public int getLowerBound() {
+        return lowerBound;
+    }
+
+    public int getUpperBound() {
+        return upperBound;
+    }
+
     public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<ItemStackEntityRevertRecipe> {
 
         @Override
         public ItemStackEntityRevertRecipe fromJson(ResourceLocation resourceLocation, JsonObject jsonObject) {
-            var ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(jsonObject, "cause"));
-            var lowerBound = GsonHelper.getAsInt(jsonObject, "lower_bound");
-            if (lowerBound <= 0)
-                throw new JsonSyntaxException("invalid lowerBound in" + resourceLocation.getNamespace() + ":" + resourceLocation.getPath());
-            var upperBound = GsonHelper.getAsInt(jsonObject, "upper_bound");
-            if (upperBound <= 0 || upperBound < lowerBound)
-                throw new JsonSyntaxException("invalid upperBound in" + resourceLocation.getNamespace() + ":" + resourceLocation.getPath());
-            List<ItemStackEntityRevertPredicate> itemStackEntityRevertPredicates = new ArrayList<>();
-            for (var jsonElement : GsonHelper.getAsJsonArray(jsonObject, "situations")) {
-                var np = new ItemStackEntityRevertPredicate(jsonElement.getAsJsonObject());
-                itemStackEntityRevertPredicates.add(np);
+            var a = NoisolpxeCodecs.recipeCodec(resourceLocation).parse(JsonOps.INSTANCE,jsonObject);
+            if(a.get().right().isPresent()){
+                throw new JsonSyntaxException(a.get().right().get().message());
             }
-            return new ItemStackEntityRevertRecipe(resourceLocation, itemStackEntityRevertPredicates, ingredient, lowerBound, upperBound);
+            return a.get().left().get();
         }
 
         @Nullable
         @Override
         public ItemStackEntityRevertRecipe fromNetwork(ResourceLocation resourceLocation, FriendlyByteBuf packetBuffer) {
-            var lowerBound = packetBuffer.readInt();
-            var upperBound = packetBuffer.readInt();
-            var ingredient = Ingredient.fromNetwork(packetBuffer);
-            var size = packetBuffer.readInt();
-            List<ItemStackEntityRevertPredicate> itemStackEntityRevertPredicates = new ArrayList<>();
-            for (int i = 0; i < size; i++) {
-                itemStackEntityRevertPredicates.add(ItemStackEntityRevertPredicate.fromNetwork(packetBuffer));
-            }
-            return new ItemStackEntityRevertRecipe(resourceLocation, itemStackEntityRevertPredicates, ingredient, lowerBound, upperBound);
+            return packetBuffer.readWithCodec(NoisolpxeCodecs.recipeCodec(resourceLocation));
         }
 
         @Override
         public void toNetwork(FriendlyByteBuf packetBuffer, ItemStackEntityRevertRecipe itemStackEntityRevertRecipe) {
-            packetBuffer.writeInt(itemStackEntityRevertRecipe.lowerBound);
-            packetBuffer.writeInt(itemStackEntityRevertRecipe.upperBound);
-            itemStackEntityRevertRecipe.ingredient.toNetwork(packetBuffer);
-            packetBuffer.writeInt(itemStackEntityRevertRecipe.itemStackEntityRevertPredicates.size());
-            for (var np : itemStackEntityRevertRecipe.itemStackEntityRevertPredicates) {
-                np.toNetwork(packetBuffer);
-            }
+            packetBuffer.writeWithCodec(NoisolpxeCodecs.recipeCodec(null),itemStackEntityRevertRecipe);
         }
     }
 }

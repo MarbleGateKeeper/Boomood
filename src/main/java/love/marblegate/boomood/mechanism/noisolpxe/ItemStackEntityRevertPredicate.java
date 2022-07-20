@@ -46,26 +46,6 @@ class ItemStackEntityRevertPredicate {
         return true;
     }
 
-    void toNetwork(FriendlyByteBuf packetBuffer) {
-        packetBuffer.writeInt(weight);
-        handler.toNetwork(packetBuffer);
-        packetBuffer.writeInt(conditions.size());
-        for (var cd : conditions) {
-            cd.toNetwork(packetBuffer);
-        }
-    }
-
-    static ItemStackEntityRevertPredicate fromNetwork(FriendlyByteBuf packetBuffer) {
-        var weight = packetBuffer.readInt();
-        var handler = ItemStackDropSituationHandler.fromNetwork(packetBuffer);
-        var size = packetBuffer.readInt();
-        List<Condition> conditions = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            conditions.add(Condition.fromNetwork(packetBuffer));
-        }
-        return new ItemStackEntityRevertPredicate(handler, conditions, weight);
-    }
-
     public ItemStackDropSituationHandler getHandler() {
         return handler;
     }
@@ -74,46 +54,15 @@ class ItemStackEntityRevertPredicate {
         return weight;
     }
 
-    interface Condition {
-        boolean valid(LevelAccessor level, BlockPos blockPos);
-
-        void toNetwork(FriendlyByteBuf packetBuffer);
-
-        static Condition fromNetwork(FriendlyByteBuf packetBuffer) {
-            var st = packetBuffer.readByte();
-            if (st == 1) {
-                var limit = packetBuffer.readInt();
-                HeightPredicate.Type type;
-                try {
-                    type = packetBuffer.readEnum(HeightPredicate.Type.class);
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    throw new JsonSyntaxException("NoisolpxeItemStackEntityRevertPredicate.Condition#fromNetwork received bad packet. This causes recipe serialization issue. Invalid HeightPredicate type");
-                }
-                return new HeightPredicate(limit, type);
-            } else if (st == 2) {
-                BiomePredicate.Type type;
-                try {
-                    type = packetBuffer.readEnum(BiomePredicate.Type.class);
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    throw new JsonSyntaxException("NoisolpxeItemStackEntityRevertPredicate.Condition#fromNetwork received bad packet. This causes recipe serialization issue. Invalid BiomePredicate type");
-                }
-                var size = packetBuffer.readInt();
-                List<Biome> biomeList = new ArrayList<>();
-                for (int i = 0; i < size; i++) {
-                    var rl = packetBuffer.readResourceLocation();
-                    var biome = ForgeRegistries.BIOMES.getValue(rl);
-                    if (biome == null) {
-                        throw new JsonSyntaxException("NoisolpxeItemStackEntityRevertPredicate.Condition#fromNetwork received bad packet. This causes recipe serialization issue. Invalid biome: " + rl);
-                    }
-                    biomeList.add(biome);
-                }
-                return new BiomePredicate(biomeList, type);
-            } else
-                throw new RuntimeException("NoisolpxeItemStackEntityRevertPredicate.Condition#fromNetwork received bad packet. This causes recipe serialization issue");
-        }
+    public List<Condition> getConditions() {
+        return conditions;
     }
 
-    private static class HeightPredicate implements Condition {
+    interface Condition {
+        boolean valid(LevelAccessor level, BlockPos blockPos);
+    }
+
+    static class HeightPredicate implements Condition {
         private final int limit;
         private final Type type;
 
@@ -135,20 +84,22 @@ class ItemStackEntityRevertPredicate {
             return (type == Type.LESS) ? blockPos.getY() < limit : blockPos.getY() > limit;
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf packetBuffer) {
-            packetBuffer.writeByte(1);
-            packetBuffer.writeInt(limit);
-            packetBuffer.writeEnum(type);
+
+        public int getLimit() {
+            return limit;
         }
 
-        private enum Type {
+        public Type getType() {
+            return type;
+        }
+
+        enum Type {
             LESS,
             GREATER
         }
     }
 
-    private static class BiomePredicate implements Condition {
+    static class BiomePredicate implements Condition {
         private final List<Biome> biomeList;
         private final Type type;
 
@@ -178,17 +129,15 @@ class ItemStackEntityRevertPredicate {
             return (type == Type.ALLOWLIST) == biomeList.contains(level.getBiome(blockPos).value());
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf packetBuffer) {
-            packetBuffer.writeByte(2);
-            packetBuffer.writeEnum(type);
-            packetBuffer.writeInt(biomeList.size());
-            for (var biome : biomeList) {
-                packetBuffer.writeResourceLocation(biome.getRegistryName());
-            }
+        public List<Biome> getBiomeList() {
+            return biomeList;
         }
 
-        private enum Type {
+        public Type getType() {
+            return type;
+        }
+
+        enum Type {
             ALLOWLIST,
             BLOCKLIST
         }
