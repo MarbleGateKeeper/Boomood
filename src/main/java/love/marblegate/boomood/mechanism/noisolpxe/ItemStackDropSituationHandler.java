@@ -72,20 +72,20 @@ public abstract class ItemStackDropSituationHandler {
 
     static ItemStackDropSituationHandler fromNetwork(FriendlyByteBuf packetBuffer) {
         var st = packetBuffer.readByte();
-        if (st == 1) {
+        if (st == 5) {
             var rl = packetBuffer.readResourceLocation();
             var entityType = ForgeRegistries.ENTITIES.getValue(rl);
             if (entityType == null) {
                 throw new JsonSyntaxException("ItemStackDropSituationHandler#fromNetwork received bad packet. This causes recipe serialization issue. Invalid entity type: " + rl);
             }
             return new EntityDeath(entityType);
-        } else if (st == 2) {
-            return new ChestDestruction();
         } else if (st == 3) {
-            return new ItemFrameDestruction();
+            return new ChestDestruction();
         } else if (st == 4) {
+            return new ItemFrameDestruction();
+        } else if (st == 2) {
             return new ArmorStandDestruction();
-        } else if (st == 5) {
+        } else if (st == 1) {
             var blockstateNbt = packetBuffer.readNbt();
             var hasNbt = packetBuffer.readBoolean();
             CompoundTag tags = null;
