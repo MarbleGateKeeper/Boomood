@@ -2,7 +2,9 @@ package love.marblegate.boomood.mechanism.situation.recipe;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import love.marblegate.boomood.mechanism.situation.handler.ItemStackDropSituationHandler;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
@@ -26,6 +28,16 @@ import java.util.Optional;
 import java.util.Random;
 
 public class ItemStackEntityRevertRecipe implements Recipe<Container> {
+
+    public static Codec<ItemStackEntityRevertRecipe> code(@Nullable ResourceLocation resourceLocation){
+        return RecordCodecBuilder.create(instance -> instance.group(
+                ResourceLocation.CODEC.optionalFieldOf("id",resourceLocation).forGetter(ItemStackEntityRevertRecipe::getId),
+                ItemStackEntityRevertPredicate.CODEC.listOf().fieldOf("situations").forGetter(ItemStackEntityRevertRecipe::getItemStackEntityRevertPredicates),
+                CodecUtils.INGREDIENT_CODEC.fieldOf("cause").forGetter(ItemStackEntityRevertRecipe::getIngredient),
+                Codec.INT.fieldOf("lowerBound").forGetter(ItemStackEntityRevertRecipe::getLowerBound),
+                Codec.INT.fieldOf("upperBound").forGetter(ItemStackEntityRevertRecipe::getUpperBound)
+        ).apply(instance, ItemStackEntityRevertRecipe::new));
+    }
     private final ResourceLocation id;
     private final List<ItemStackEntityRevertPredicate> itemStackEntityRevertPredicates;
     private final Ingredient ingredient;
@@ -163,7 +175,7 @@ public class ItemStackEntityRevertRecipe implements Recipe<Container> {
 
         @Override
         public ItemStackEntityRevertRecipe fromJson(ResourceLocation resourceLocation, JsonObject jsonObject) {
-            var a = NoisolpxeCodecs.recipeCodec(resourceLocation).parse(JsonOps.INSTANCE,jsonObject);
+            var a = code(resourceLocation).parse(JsonOps.INSTANCE,jsonObject);
             if(a.get().right().isPresent()){
                 throw new JsonSyntaxException(a.get().right().get().message());
             }
@@ -173,12 +185,12 @@ public class ItemStackEntityRevertRecipe implements Recipe<Container> {
         @Nullable
         @Override
         public ItemStackEntityRevertRecipe fromNetwork(ResourceLocation resourceLocation, FriendlyByteBuf packetBuffer) {
-            return packetBuffer.readWithCodec(NoisolpxeCodecs.recipeCodec(resourceLocation));
+            return packetBuffer.readWithCodec(code(resourceLocation));
         }
 
         @Override
         public void toNetwork(FriendlyByteBuf packetBuffer, ItemStackEntityRevertRecipe itemStackEntityRevertRecipe) {
-            packetBuffer.writeWithCodec(NoisolpxeCodecs.recipeCodec(null),itemStackEntityRevertRecipe);
+            packetBuffer.writeWithCodec(code(null),itemStackEntityRevertRecipe);
         }
     }
 }

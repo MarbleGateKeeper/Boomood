@@ -22,7 +22,9 @@
             "BurnTime": 500
           }
         },{
-          "Name": "minecraft:gold_block"
+          "blockstate": {
+            "Name": "minecraft:gold_block"
+          }
         }]
       },
       "weight": 500
@@ -34,8 +36,7 @@
           "blockstate": {
             "Name": "minecraft:diamond_block"
             }
-          }
-        }]
+          }]
       },
       "weight": 500
     }

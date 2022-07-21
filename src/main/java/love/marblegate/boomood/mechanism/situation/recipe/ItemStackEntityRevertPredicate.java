@@ -1,7 +1,14 @@
 package love.marblegate.boomood.mechanism.situation.recipe;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import love.marblegate.boomood.mechanism.situation.Situation;
 import love.marblegate.boomood.mechanism.situation.handler.ItemStackDropSituationHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -14,6 +21,53 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ItemStackEntityRevertPredicate {
+    public static Codec<List<ItemStackEntityRevertPredicate.Condition>> CODITION_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
+    {
+        try {
+            var json = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
+            List<ItemStackEntityRevertPredicate.Condition> ret = new ArrayList<>();
+            if (json.size() != 0) {
+                var heightConditionJson = json.getAsJsonObject("height");
+                if (heightConditionJson != null)
+                    ret.add(new ItemStackEntityRevertPredicate.HeightPredicate(heightConditionJson));
+                var biomeConditionJson = json.getAsJsonObject("biome");
+                if (biomeConditionJson != null)
+                    ret.add(new ItemStackEntityRevertPredicate.BiomePredicate(biomeConditionJson));
+            }
+            return DataResult.success(ret);
+        } catch (Exception e) {
+            return DataResult.error(e.getMessage());
+        }
+    }, conditions -> {
+        var ret = new JsonObject();
+        for(var condition:conditions){
+            if(condition instanceof ItemStackEntityRevertPredicate.HeightPredicate heightPredicate){
+                var temp = new JsonObject();
+                if(heightPredicate.getType() == ItemStackEntityRevertPredicate.HeightPredicate.Type.GREATER)
+                    temp.addProperty("type","greater");
+                else temp.addProperty("type","less");
+                temp.addProperty("content",heightPredicate.getLimit());
+                ret.add("height",temp);
+            } else {
+                var condition1 = (ItemStackEntityRevertPredicate.BiomePredicate) condition;
+                var temp = new JsonObject();
+                if(condition1.getType() == ItemStackEntityRevertPredicate.BiomePredicate.Type.ALLOWLIST)
+                    temp.addProperty("type","allowlist");
+                else temp.addProperty("type","blocklist");
+                var temp2 = new JsonArray();
+                for(var biome : condition1.getBiomeList()){
+                    temp2.add(biome.getRegistryName().toString());
+                }
+                temp.add("content",temp2);
+            }
+        }
+        return new Dynamic<>(JsonOps.INSTANCE,ret);
+    });
+
+    public static Codec<ItemStackEntityRevertPredicate> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Situation.CODEC.fieldOf("detail").forGetter(ItemStackEntityRevertPredicate::getHandler),
+            CODITION_CODEC.optionalFieldOf("condition", new ArrayList<>()).forGetter(ItemStackEntityRevertPredicate::getConditions),
+            Codec.intRange(0,385 * 10 * 10).fieldOf("weight").forGetter(ItemStackEntityRevertPredicate::getWeight)).apply(instance, ItemStackEntityRevertPredicate::new));
     private final ItemStackDropSituationHandler handler;
     private final List<Condition> conditions;
     private final int weight;

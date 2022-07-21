@@ -12,7 +12,7 @@ import net.minecraft.world.phys.AABB;
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
-public class FireBurnSituation implements Situation {
+public class FireBurnSituation extends Situation {
 
     private final boolean tryFixStructure;
     private final Predicate<Block> isFire;

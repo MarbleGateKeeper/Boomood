@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-class ItemStackDropSituation implements Situation {
+class ItemStackDropSituation extends Situation {
     private final ItemStackDropSituationHandler handler;
     private final List<ItemStack> items;
 

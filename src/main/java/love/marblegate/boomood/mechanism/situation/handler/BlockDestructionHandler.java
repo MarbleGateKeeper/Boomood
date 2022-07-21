@@ -58,7 +58,7 @@ public class BlockDestructionHandler extends ItemStackDropSituationHandler {
     private final List<BlockInfo> blockInfos;
 
     public BlockDestructionHandler(JsonObject jsonObject) {
-        var json = GsonHelper.getAsJsonObject(jsonObject, "blocks");
+        var json = GsonHelper.getAsJsonArray(jsonObject, "blocks");
         blockInfos = BLOCK_INFO_CODEC.listOf().parse(JsonOps.INSTANCE,json).getOrThrow(false,err -> {
             throw new JsonSyntaxException("BlockInfos in BlockDestructionHandler deserialization failed. Error: " + err);
         });

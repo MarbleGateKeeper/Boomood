@@ -11,7 +11,7 @@ import net.minecraft.world.phys.AABB;
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
-public class FluidFlowSituation implements Situation {
+public class FluidFlowSituation extends Situation {
 
     private final Predicate<Fluid> revertNonSource;
     private final Predicate<Fluid> revertAll;
