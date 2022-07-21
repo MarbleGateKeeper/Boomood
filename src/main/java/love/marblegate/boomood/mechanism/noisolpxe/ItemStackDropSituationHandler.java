@@ -382,7 +382,7 @@ public abstract class ItemStackDropSituationHandler {
         }
 
         private void tryPutIntoChest(Level level, BlockPos blockPos, ItemStack itemStack){
-            MiscUtils.searchValidChestAndInsert(level, blockPos, itemStack);
+            itemStack = MiscUtils.searchValidChestAndInsert(level, blockPos, itemStack);
             if(!itemStack.isEmpty()){
                 var optional = MiscUtils.randomizeDestination(level,blockPos);
                 if(optional.isEmpty()) return;
@@ -392,7 +392,8 @@ public abstract class ItemStackDropSituationHandler {
                 BlockEntity chestBlockEntity = level.getBlockEntity(destination);
                 var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
                 if(itemhandler.isPresent()){
-                    itemhandler.ifPresent(cap-> cap.insertItem(0, itemStack, false));
+                    ItemStack finalItemStack = itemStack;
+                    itemhandler.ifPresent(cap-> cap.insertItem(0, finalItemStack, false));
                 }
                 // TODO add custom particle effect for indication & add implement explosion particle
             }

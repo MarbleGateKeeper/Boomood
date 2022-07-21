@@ -100,8 +100,8 @@ public class NoisolpxeCodecs {
                 ResourceLocation.CODEC.optionalFieldOf("id",resourceLocation).forGetter(ItemStackEntityRevertRecipe::getId),
                 PREDICATE_CODEC.listOf().fieldOf("situations").forGetter(ItemStackEntityRevertRecipe::getItemStackEntityRevertPredicates),
                 INGREDIENT_CODEC.fieldOf("cause").forGetter(ItemStackEntityRevertRecipe::getIngredient),
-                Codec.INT.fieldOf("lower_bound").forGetter(ItemStackEntityRevertRecipe::getLowerBound),
-                Codec.INT.fieldOf("upper_bound").forGetter(ItemStackEntityRevertRecipe::getUpperBound)
+                Codec.INT.fieldOf("lowerBound").forGetter(ItemStackEntityRevertRecipe::getLowerBound),
+                Codec.INT.fieldOf("upperBound").forGetter(ItemStackEntityRevertRecipe::getUpperBound)
         ).apply(instance, ItemStackEntityRevertRecipe::new));
     }
 

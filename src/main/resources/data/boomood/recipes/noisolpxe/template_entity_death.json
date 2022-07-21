@@ -3,8 +3,8 @@
   "cause": {
     "item": "minecraft:coal"
   },
-  "upper_bound": 3,
-  "lower_bound": 1,
+  "upperBound": 3,
+  "lowerBound": 1,
   "situations": [
     {
       "detail": {

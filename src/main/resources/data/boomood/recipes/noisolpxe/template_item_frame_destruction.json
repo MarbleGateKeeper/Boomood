@@ -3,8 +3,8 @@
   "cause": {
     "item": "minecraft:firework_star"
   },
-  "upper_bound": 1,
-  "lower_bound": 1,
+  "upperBound": 1,
+  "lowerBound": 1,
   "situations": [
     {
       "detail": {
