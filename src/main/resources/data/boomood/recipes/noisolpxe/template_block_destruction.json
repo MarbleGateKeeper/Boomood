@@ -9,21 +9,33 @@
     {
       "detail": {
         "type":"block_destruction",
-        "block": "minecraft:furnace",
-        "property": {
-          "facing": "north",
-          "lit": true
-        },
-        "tag": {
-          "BurnTime": 1200
-        }
+        "blocks":[{
+          "blockstate": {
+            "Name": "minecraft:furnace",
+            "Properties": {
+              "facing": "north",
+              "lit": true
+            }
+          },
+          "count": 5,
+          "tags": {
+            "BurnTime": 500
+          }
+        },{
+          "Name": "minecraft:gold_block"
+        }]
       },
       "weight": 500
     },
     {
       "detail": {
         "type":"block_destruction",
-        "block": "minecraft:furnace"
+        "blocks": [{
+          "blockstate": {
+            "Name": "minecraft:diamond_block"
+            }
+          }
+        }]
       },
       "weight": 500
     }

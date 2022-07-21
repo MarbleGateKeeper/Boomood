@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.noisolpxe;
+package love.marblegate.boomood.mechanism.situation.recipe;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -8,6 +8,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import love.marblegate.boomood.mechanism.situation.handler.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -33,11 +34,11 @@ public class NoisolpxeCodecs {
             var st = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
             var type = st.getAsJsonPrimitive("type").getAsString();
             return switch (type) {
-                case "entity_death" -> DataResult.success(new ItemStackDropSituationHandler.EntityDeath(st));
-                case "chest_destruction" -> DataResult.success(new ItemStackDropSituationHandler.ChestDestruction(st));
-                case "item_frame_destruction" -> DataResult.success(new ItemStackDropSituationHandler.ItemFrameDestruction(st));
-                case "armor_stand_destruction" -> DataResult.success(new ItemStackDropSituationHandler.ArmorStandDestruction());
-                case "block_destruction" -> DataResult.success(new ItemStackDropSituationHandler.BlockDestruction(st));
+                case "entity_death" -> DataResult.success(new EntityDeathHandler(st));
+                case "chest_destruction" -> DataResult.success(new ChestDestructionHandler(st));
+                case "item_frame_destruction" -> DataResult.success(new ItemFrameDestructionHandler(st));
+                case "armor_stand_destruction" -> DataResult.success(new ArmorStandDestructionHandler());
+                case "block_destruction" -> DataResult.success(new BlockDestructionHandler(st));
                 default -> throw new JsonSyntaxException("Expected type to be \"entity_death\", \"chest_destruction\", \"item_frame_destruction\", \"armor_stand_destruction\" or \"block_destruction\", was " + st);
             };
         } catch (Exception e) {

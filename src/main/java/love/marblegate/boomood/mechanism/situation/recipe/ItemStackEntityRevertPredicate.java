@@ -1,9 +1,9 @@
-package love.marblegate.boomood.mechanism.noisolpxe;
+package love.marblegate.boomood.mechanism.situation.recipe;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import love.marblegate.boomood.mechanism.situation.handler.ItemStackDropSituationHandler;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.LevelAccessor;
@@ -13,27 +13,12 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 
-class ItemStackEntityRevertPredicate {
+public class ItemStackEntityRevertPredicate {
     private final ItemStackDropSituationHandler handler;
     private final List<Condition> conditions;
     private final int weight;
 
-    ItemStackEntityRevertPredicate(JsonObject jsonObject) {
-        conditions = new ArrayList<>();
-        var conditionJson = jsonObject.getAsJsonObject("condition");
-        if (conditionJson != null) {
-            var heightConditionJson = conditionJson.getAsJsonObject("height");
-            if (heightConditionJson != null)
-                conditions.add(new HeightPredicate(heightConditionJson));
-            var biomeConditionJson = conditionJson.getAsJsonObject("biome");
-            if (biomeConditionJson != null)
-                conditions.add(new BiomePredicate(biomeConditionJson));
-        }
-        weight = GsonHelper.getAsInt(jsonObject, "weight");
-        handler = ItemStackDropSituationHandler.create(jsonObject);
-    }
-
-    ItemStackEntityRevertPredicate(ItemStackDropSituationHandler handler, List<Condition> conditions, int weight) {
+    public ItemStackEntityRevertPredicate(ItemStackDropSituationHandler handler, List<Condition> conditions, int weight) {
         this.handler = handler;
         this.conditions = conditions;
         this.weight = weight;
@@ -58,15 +43,15 @@ class ItemStackEntityRevertPredicate {
         return conditions;
     }
 
-    interface Condition {
+    public interface Condition {
         boolean valid(LevelAccessor level, BlockPos blockPos);
     }
 
-    static class HeightPredicate implements Condition {
+    public static class HeightPredicate implements Condition {
         private final int limit;
         private final Type type;
 
-        HeightPredicate(JsonObject jsonObject) {
+        public HeightPredicate(JsonObject jsonObject) {
             this.limit = GsonHelper.getAsInt(jsonObject, "content");
             var t = GsonHelper.getAsString(jsonObject, "type");
             if (t.equals("less")) type = Type.LESS;
@@ -93,17 +78,17 @@ class ItemStackEntityRevertPredicate {
             return type;
         }
 
-        enum Type {
+        public enum Type {
             LESS,
             GREATER
         }
     }
 
-    static class BiomePredicate implements Condition {
+    public static class BiomePredicate implements Condition {
         private final List<Biome> biomeList;
         private final Type type;
 
-        BiomePredicate(JsonObject jsonObject) {
+        public BiomePredicate(JsonObject jsonObject) {
             String t = GsonHelper.getAsString(jsonObject, "type");
             if (t.equals("allowlist")) type = Type.ALLOWLIST;
             else if (t.equals("blocklist")) type = Type.BLOCKLIST;
@@ -137,7 +122,7 @@ class ItemStackEntityRevertPredicate {
             return type;
         }
 
-        enum Type {
+        public enum Type {
             ALLOWLIST,
             BLOCKLIST
         }

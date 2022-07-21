@@ -1,6 +1,6 @@
 package love.marblegate.boomood.item;
 
-import love.marblegate.boomood.mechanism.noisolpxe.SituationFactory;
+import love.marblegate.boomood.mechanism.situation.SituationFactory;
 import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;

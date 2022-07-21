@@ -1,8 +1,9 @@
-package love.marblegate.boomood.mechanism.noisolpxe;
+package love.marblegate.boomood.mechanism.situation.recipe;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.JsonOps;
+import love.marblegate.boomood.mechanism.situation.handler.ItemStackDropSituationHandler;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -31,7 +32,7 @@ public class ItemStackEntityRevertRecipe implements Recipe<Container> {
     private final int lowerBound;
     private final int upperBound;
 
-    ItemStackEntityRevertRecipe(ResourceLocation id, List<ItemStackEntityRevertPredicate> itemStackEntityRevertPredicates, Ingredient ingredient, int lowerBound, int upperBound) {
+    public ItemStackEntityRevertRecipe(ResourceLocation id, List<ItemStackEntityRevertPredicate> itemStackEntityRevertPredicates, Ingredient ingredient, int lowerBound, int upperBound) {
         this.id = id;
         this.itemStackEntityRevertPredicates = itemStackEntityRevertPredicates;
         this.ingredient = ingredient;

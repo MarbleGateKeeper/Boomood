@@ -9,7 +9,10 @@
     {
       "detail": {
         "type":"entity_death",
-        "entity": "minecraft:wither_skeleton"
+        "entity": "minecraft:wither_skeleton",
+        "nbt": {
+
+        }
       },
       "weight": 100
     }

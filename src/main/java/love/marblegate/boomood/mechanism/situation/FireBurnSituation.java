@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.noisolpxe;
+package love.marblegate.boomood.mechanism.situation;
 
 import love.marblegate.boomood.misc.ServerUtils;
 import net.minecraft.core.BlockPos;
