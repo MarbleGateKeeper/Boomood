@@ -14,7 +14,7 @@
           "facing": "north",
           "lit": true
         },
-        "nbt": {
+        "tag": {
           "BurnTime": 1200
         }
       },
@@ -23,13 +23,7 @@
     {
       "detail": {
         "type":"block_destruction",
-        "block": "minecraft:furnace",
-        "property": {
-          "facing": "west"
-        },
-        "nbt": {
-          "BurnTime": 200
-        }
+        "block": "minecraft:furnace"
       },
       "weight": 500
     }

@@ -3,17 +3,22 @@ package love.marblegate.boomood.misc;
 import love.marblegate.boomood.config.Configuration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Rotations;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.items.CapabilityItemHandler;
 
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MiscUtils {
     public static BlockPos findLookAt(Player player) {
@@ -41,14 +46,46 @@ public class MiscUtils {
                 continue;
             }
             // Height Limit
-            if(destination.getY()>256){
-                return Optional.empty(); // Give the f**k up
+            if(destination.getY()>level.getMaxBuildHeight()){
+                return Optional.empty();
             }
         }
         return Optional.of(destination);
     }
 
-    public static BlockState getSupportBlock(){
+    public static List<BlockPos> createBottomToTopBlockPosList(AABB aabb){
+        var ret = new ArrayList<BlockPos>();
+        BlockPos.betweenClosedStream(aabb).forEach(blockPos -> {
+            ret.add(new BlockPos(blockPos));
+        });
+        ret.sort(Comparator.comparingInt(Vec3i::getY));
+        return ret;
+    }
+
+    public static ItemStack searchValidChestAndInsert(Level level, BlockPos blockPos, ItemStack itemStack){
+        var blockPosList = createBottomToTopBlockPosList(createScanningArea(blockPos).setMaxY(level.getMaxBuildHeight()));
+        for(var bp: blockPosList){
+            if(level.getBlockState(bp).is(Blocks.CHEST)){
+                BlockEntity chestBlockEntity = level.getBlockEntity(bp);
+                var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+                var bi = new AtomicReference<>(itemStack);
+                if(itemhandler.isPresent()){
+                    itemhandler.ifPresent(cap->{
+                        for(int i=0;i<cap.getSlots();i++){
+                            bi.set(cap.insertItem(i, bi.get(), false));
+                            if(bi.get().isEmpty()) break;
+                        }
+                    });
+                }
+                itemStack = bi.get();
+            }
+            if(itemStack.isEmpty()) return itemStack;
+        }
+        return itemStack;
+    }
+
+    public static BlockState getSupportBlock(Level level, BlockPos blockPos){
+        // TODO check wiki to edit this method
         return Blocks.GLASS.defaultBlockState();
     }
 

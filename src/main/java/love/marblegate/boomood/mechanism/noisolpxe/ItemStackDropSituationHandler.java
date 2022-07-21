@@ -2,8 +2,6 @@ package love.marblegate.boomood.mechanism.noisolpxe;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -11,20 +9,18 @@ import com.mojang.serialization.JsonOps;
 import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.TagParser;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.NbtComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.decoration.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -33,9 +29,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateHolder;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -44,7 +38,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public abstract class ItemStackDropSituationHandler {
     protected static Random RND = new Random();
@@ -53,8 +46,8 @@ public abstract class ItemStackDropSituationHandler {
         return new ArmorStandDestruction();
     }
 
-    public static ItemStackDropSituationHandler createDefaultHandler() {
-        return new ChestDestruction();
+    public static ItemStackDropSituationHandler createDefaultHandler(ItemStack itemStack) {
+        return new ChestDestruction(itemStack);
     }
 
     abstract void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator);
@@ -69,8 +62,8 @@ public abstract class ItemStackDropSituationHandler {
         var st = GsonHelper.getAsString(jsonObject, "type");
         return switch (st) {
             case "entity_death" -> new EntityDeath(jsonObject);
-            case "chest_destruction" -> new ChestDestruction();
-            case "item_frame_destruction" -> new ItemFrameDestruction();
+            case "chest_destruction" -> new ChestDestruction(jsonObject);
+            case "item_frame_destruction" -> new ItemFrameDestruction(jsonObject);
             case "armor_stand_destruction" -> new ArmorStandDestruction();
             case "block_destruction" -> new BlockDestruction(jsonObject);
             default -> throw new JsonSyntaxException("Expected type to be \"entity_death\", \"chest_destruction\", \"item_frame_destruction\", \"armor_stand_destruction\" or \"block_destruction\", was " + st);
@@ -128,11 +121,6 @@ public abstract class ItemStackDropSituationHandler {
 
         }
 
-        BlockDestruction(BlockState blockState, @Nullable CompoundTag tags) {
-            this.blockState = blockState;
-            this.tags = tags;
-        }
-
         @Override
         public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
             var optional = MiscUtils.randomizeDestination(level,blockPos);
@@ -140,7 +128,7 @@ public abstract class ItemStackDropSituationHandler {
             var destination = optional.get();
             // Falling block should have support block
             if(blockState.getBlock() instanceof FallingBlock && level.getBlockState(destination.below()).is(Blocks.AIR)){
-                level.setBlockAndUpdate(destination.below(), MiscUtils.getSupportBlock());
+                level.setBlockAndUpdate(destination.below(), MiscUtils.getSupportBlock(level,destination.below()));
             }
             level.setBlockAndUpdate(destination,blockState);
             if(tags !=null){
@@ -173,7 +161,9 @@ public abstract class ItemStackDropSituationHandler {
             ret.add("property",propertiesJson);
             if(tags!=null){
                 var nbtJson = CompoundTag.CODEC.encodeStart(JsonOps.INSTANCE,tags);
-                ret.add("nbt",propertiesJson);
+                ret.add("tag",nbtJson.getOrThrow(false,err -> {
+                    throw new JsonSyntaxException("Invalid block tag: " + nbtJson + ".Error: " + err);
+                }));
             }
             return ret;
         }
@@ -185,6 +175,7 @@ public abstract class ItemStackDropSituationHandler {
             return itemStackListList;
         }
 
+        // TODO 改用序列化BlockState的方法
         private static <T extends Comparable<T>> String getName(Property<T> p_129211_, Comparable<?> p_129212_) {
             return p_129211_.getName((T)p_129212_);
         }
@@ -199,7 +190,7 @@ public abstract class ItemStackDropSituationHandler {
             var destination = optional.get();
             // Armor stand should have support block
             if(level.getBlockState(destination.below()).is(Blocks.AIR)){
-                level.setBlockAndUpdate(destination.below(), MiscUtils.getSupportBlock());
+                level.setBlockAndUpdate(destination.below(), MiscUtils.getSupportBlock(level,destination.below()));
             }
             Vec3 vec3 = Vec3.atBottomCenterOf(destination);
             AABB aabb = EntityType.ARMOR_STAND.getDimensions().makeBoundingBox(vec3.x(), vec3.y(), vec3.z());
@@ -257,24 +248,41 @@ public abstract class ItemStackDropSituationHandler {
     }
 
     static class ChestDestruction extends ItemStackDropSituationHandler {
+        private final ItemStack target;
+
+        ChestDestruction(JsonObject jsonObject) {
+            if(jsonObject.has("itemstack")) {
+                var itemStackJson = GsonHelper.getAsJsonObject(jsonObject, "itemstack");
+                var itemStackResult = ItemStack.CODEC.parse(JsonOps.INSTANCE, itemStackJson);
+                target = itemStackResult.getOrThrow(false, err -> {
+                    throw new JsonSyntaxException("Invalid itemstack nbt: " + itemStackJson + ".Error: " + err);
+                });
+            }
+            else target = null;
+        }
+
+        public ChestDestruction(ItemStack target) {
+            this.target = target;
+        }
 
         @Override
         public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
-            var optional = MiscUtils.randomizeDestination(level,blockPos);
-            if(optional.isEmpty()) return;
-            var destination = optional.get();
-            var facings = ChestBlock.FACING.getAllValues().toList().stream().map(Property.Value::value).toList();
-            level.setBlockAndUpdate(destination,Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING,facings.get(new Random().nextInt(facings.size()))));
-            BlockEntity chestBlockEntity = level.getBlockEntity(destination);
-            var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-            if(itemhandler.isPresent()){
-                itemhandler.ifPresent(cap->{
-                    int i = 0;
-                    for(var itemStack: itemStacks){
-                        cap.insertItem(i, itemStack, false);
-                        i++;
-                    }
-                });
+            var insertItemStack = target==null? itemStacks.get(0): target;
+            insertItemStack = MiscUtils.searchValidChestAndInsert(level,blockPos,insertItemStack);
+            if(!insertItemStack.isEmpty()){
+                var optional = MiscUtils.randomizeDestination(level,blockPos);
+                if(optional.isEmpty()) return;
+                var destination = optional.get();
+                var facings = ChestBlock.FACING.getAllValues().toList().stream().map(Property.Value::value).toList();
+                level.setBlockAndUpdate(destination,Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING,facings.get(new Random().nextInt(facings.size()))));
+                BlockEntity chestBlockEntity = level.getBlockEntity(destination);
+                var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+                if(itemhandler.isPresent()){
+                    ItemStack finalInsertItemStack = insertItemStack;
+                    itemhandler.ifPresent(cap->{
+                        cap.insertItem(0, finalInsertItemStack, false);
+                    });
+                }
             }
             // TODO add custom particle effect for indication & add implement explosion particle
         }
@@ -289,34 +297,105 @@ public abstract class ItemStackDropSituationHandler {
         JsonObject toJson() {
             var ret = new JsonObject();
             ret.addProperty("type","chest_destruction");
+            if(target!=null){
+                ret.add("itemstack",ItemStack.CODEC.encodeStart(JsonOps.INSTANCE,target).get().left().get());
+            }
             return ret;
         }
 
         @Override
         List<List<ItemStack>> mergeItemStack(List<List<ItemStack>> itemStackListList) {
-            // Every single chest can hold only 27 stack of Item.
-            List<List<ItemStack>> ret = new ArrayList<>();
-            var container = new SimpleContainer(27);
-            itemStackListList.forEach(itemStackList -> itemStackList.forEach(itemStack -> {
-                if (container.canAddItem(itemStack)) {
-                    container.addItem(itemStack);
-                } else {
-                    ret.add(container.removeAllItems());
-                    container.addItem(itemStack);
-                }
-            }));
-            if (!container.isEmpty()) {
-                ret.add(container.removeAllItems());
-            }
-            return ret;
+            // No need to merge
+            return itemStackListList;
         }
     }
 
     static class ItemFrameDestruction extends ItemStackDropSituationHandler {
 
+        @Nullable private final ItemStack target;
+
+        ItemFrameDestruction(JsonObject jsonObject) {
+            if(jsonObject.has("itemstack")) {
+                var itemStackJson = GsonHelper.getAsJsonObject(jsonObject, "itemstack");
+                var itemStackResult = ItemStack.CODEC.parse(JsonOps.INSTANCE, itemStackJson);
+                target = itemStackResult.getOrThrow(false, err -> {
+                    throw new JsonSyntaxException("Invalid block nbt: " + itemStackJson + ".Error: " + err);
+                });
+            }
+            else target = null;
+        }
+
         @Override
         public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
-            //TODO
+            var isGlowItemFrame = Math.random() < Configuration.NOISOLPXE_GLOW_ITEM_FRAME_POSSIBILITY.get();
+            var blockPosList = MiscUtils.createBottomToTopBlockPosList(MiscUtils.createScanningArea(blockPos));
+            ItemFrame itemFrame;
+            var displayItemStack = target==null? itemStacks.get(0): target;
+            for(var bp:blockPosList){
+                for(var direction: Direction.values()){
+                    if(isGlowItemFrame) itemFrame = new GlowItemFrame(level, bp, direction);
+                    else itemFrame = new ItemFrame(level, bp, direction);
+                    if(itemFrame.survives()) {
+                        itemFrame.setItem(displayItemStack);
+                        level.addFreshEntity(itemFrame);
+                        displayItemStack = ItemStack.EMPTY;
+                        // TODO add custom particle effect for indication & add implement explosion particle
+                        break;
+                    }
+                }
+                if(displayItemStack.isEmpty()) break;
+            }
+            if(!displayItemStack.isEmpty()){
+                if(Configuration.NOISOLPXE_ITEM_FRAME_SITUATION_REMEDY_IS_SUPPORT_BLOCK.get()){
+                    var tryTime = 0;
+                    while(tryTime<3){
+                        var optional = MiscUtils.randomizeDestination(level,blockPos);
+                        if(optional.isEmpty()) return;
+                        var destination = optional.get();
+                        var od = getEmptyNeighborDirection(level, destination);
+                        if(od.isEmpty()){
+                            tryTime++;
+                        }else{
+                            level.setBlockAndUpdate(destination.relative(od.get()),MiscUtils.getSupportBlock(level,destination.relative(od.get())));
+                            if(isGlowItemFrame) itemFrame = new GlowItemFrame(level, destination, od.get().getOpposite());
+                            else itemFrame = new ItemFrame(level, destination, od.get().getOpposite());
+                            itemFrame.setItem(displayItemStack);
+                            level.addFreshEntity(itemFrame);
+                            // TODO add custom particle effect for indication & add implement explosion particle
+                            break;
+                        }
+                    }
+                } else {
+                    tryPutIntoChest(level,blockPos,displayItemStack);
+                }
+            }
+        }
+
+
+        private Optional<Direction> getEmptyNeighborDirection(Level level, BlockPos blockPos){
+            for(var direction: Direction.values()){
+                if(level.getBlockState(blockPos.relative(direction)).getBlock().equals(Blocks.AIR)) {
+                    return Optional.of(direction);
+                }
+            }
+            return Optional.empty();
+        }
+
+        private void tryPutIntoChest(Level level, BlockPos blockPos, ItemStack itemStack){
+            MiscUtils.searchValidChestAndInsert(level, blockPos, itemStack);
+            if(!itemStack.isEmpty()){
+                var optional = MiscUtils.randomizeDestination(level,blockPos);
+                if(optional.isEmpty()) return;
+                var destination = optional.get();
+                var facings = ChestBlock.FACING.getAllValues().toList().stream().map(Property.Value::value).toList();
+                level.setBlockAndUpdate(destination,Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING,facings.get(new Random().nextInt(facings.size()))));
+                BlockEntity chestBlockEntity = level.getBlockEntity(destination);
+                var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+                if(itemhandler.isPresent()){
+                    itemhandler.ifPresent(cap-> cap.insertItem(0, itemStack, false));
+                }
+                // TODO add custom particle effect for indication & add implement explosion particle
+            }
         }
 
         @Override
@@ -344,6 +423,9 @@ public abstract class ItemStackDropSituationHandler {
         JsonObject toJson() {
             var ret = new JsonObject();
             ret.addProperty("type","item_frame_destruction");
+            if(target!=null){
+                ret.add("itemstack",ItemStack.CODEC.encodeStart(JsonOps.INSTANCE,target).get().left().get());
+            }
             return ret;
         }
     }

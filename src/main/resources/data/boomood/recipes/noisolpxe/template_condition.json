@@ -3,7 +3,7 @@
   "cause": {
     "item": "minecraft:bedrock"
   },
-  "upper_bound": 10,
+  "upper_bound": 1,
   "lower_bound": 1,
   "situations": [
     {
@@ -41,44 +41,6 @@
           "content": 30
         }
       }
-    },
-    {
-      "detail": {
-        "type":"entity_death",
-        "entity": "minecraft:zombie"
-      },
-      "weight": 100
-    },
-    {
-      "detail": {
-        "type":"chest_destruction"
-      },
-      "weight": 50
-    },
-    {
-      "detail": {
-        "type":"item_frame_destruction"
-      },
-      "weight": 50
-    },
-    {
-      "detail": {
-        "type":"armor_stand_destruction"
-      },
-      "weight": 50
-    },
-    {
-      "detail": {
-        "type":"block_destruction",
-        "block": "minecraft:furnace",
-        "property": {
-          "facing": "north"
-        },
-        "nbt": {
-          "BurnTime": 1200
-        }
-      },
-      "weight": 500
     }
   ]
 }

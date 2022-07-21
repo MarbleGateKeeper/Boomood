@@ -34,8 +34,8 @@ public class NoisolpxeCodecs {
             var type = st.getAsJsonPrimitive("type").getAsString();
             return switch (type) {
                 case "entity_death" -> DataResult.success(new ItemStackDropSituationHandler.EntityDeath(st));
-                case "chest_destruction" -> DataResult.success(new ItemStackDropSituationHandler.ChestDestruction());
-                case "item_frame_destruction" -> DataResult.success(new ItemStackDropSituationHandler.ItemFrameDestruction());
+                case "chest_destruction" -> DataResult.success(new ItemStackDropSituationHandler.ChestDestruction(st));
+                case "item_frame_destruction" -> DataResult.success(new ItemStackDropSituationHandler.ItemFrameDestruction(st));
                 case "armor_stand_destruction" -> DataResult.success(new ItemStackDropSituationHandler.ArmorStandDestruction());
                 case "block_destruction" -> DataResult.success(new ItemStackDropSituationHandler.BlockDestruction(st));
                 default -> throw new JsonSyntaxException("Expected type to be \"entity_death\", \"chest_destruction\", \"item_frame_destruction\", \"armor_stand_destruction\" or \"block_destruction\", was " + st);
