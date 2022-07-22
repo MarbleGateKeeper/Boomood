@@ -1,6 +1,5 @@
-package love.marblegate.boomood.mechanism.situation.recipe;
+package love.marblegate.boomood.mechanism.itemstackrevert;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
@@ -16,34 +15,6 @@ import net.minecraftforge.common.crafting.PartialNBTIngredient;
 import javax.annotation.Nullable;
 
 public class IngredientBox {
-    // TODO 看这两个是否需要删除
-    static final Codec<Ingredient> INGREDIENT_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
-            {
-                try {
-                    Ingredient ingredient = Ingredient.fromJson(dynamic.convert(JsonOps.INSTANCE).getValue());
-                    return DataResult.success(ingredient);
-                } catch (Exception e) {
-                    return DataResult.error(e.getMessage());
-                }
-            },
-            ingredient -> new Dynamic<>(JsonOps.INSTANCE, ingredient.toJson()));
-
-    static final Codec<NBTIngredient> NBT_INGREDIENT_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
-            {
-                try {
-                    NBTIngredient ingredient = NBTIngredient.Serializer.INSTANCE.parse(dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject());
-                    return DataResult.success(ingredient);
-                } catch (Exception e) {
-                    return DataResult.error(e.getMessage());
-                }
-            },
-            ingredient -> {
-                var result = ingredient.toJson().getAsJsonObject();
-                result.remove("type");
-                return new Dynamic<>(JsonOps.INSTANCE, result);
-            }
-    );
-
     public static final Codec<IngredientBox> CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
             {
                 try {

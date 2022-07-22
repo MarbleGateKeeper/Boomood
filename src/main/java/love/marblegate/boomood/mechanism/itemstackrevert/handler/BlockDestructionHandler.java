@@ -1,19 +1,13 @@
-package love.marblegate.boomood.mechanism.situation.handler;
+package love.marblegate.boomood.mechanism.itemstackrevert.handler;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.TagParser;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -22,15 +16,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
-public class BlockDestructionHandler extends ItemStackDropSituationHandler {
+public class BlockDestructionHandler extends ItemStackRevertHandler {
 
     public record BlockInfo(BlockState blockState,CompoundTag tags,int count){
         @Override

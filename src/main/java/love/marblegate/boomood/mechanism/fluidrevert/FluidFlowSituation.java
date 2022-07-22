@@ -1,5 +1,6 @@
-package love.marblegate.boomood.mechanism.situation;
+package love.marblegate.boomood.mechanism.fluidrevert;
 
+import love.marblegate.boomood.mechanism.Situation;
 import love.marblegate.boomood.misc.ServerUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -20,7 +21,7 @@ public class FluidFlowSituation extends Situation {
     private static final Predicate<Fluid> ALL = fluid -> true;
     private static final Predicate<Fluid> NONE = fluid -> false;
 
-    FluidFlowSituation(@Nullable Predicate<Fluid> revertNonSource, @Nullable Predicate<Fluid> revertAll, AABB area) {
+    public FluidFlowSituation(@Nullable Predicate<Fluid> revertNonSource, @Nullable Predicate<Fluid> revertAll, AABB area) {
         this.area = area;
         if (revertNonSource == null) this.revertNonSource = ALL;
         else this.revertNonSource = revertNonSource;

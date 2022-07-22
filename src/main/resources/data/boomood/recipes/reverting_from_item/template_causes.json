@@ -36,17 +36,15 @@
       "max": 1
     }
   ],
-  "situations": [
-    {
-      "detail": {
-        "type":"block_destruction",
-        "blocks": [{
-          "blockstate": {
-            "Name": "minecraft:gold_block"
-          }
-        }]
-      },
-      "weight": 500
-    }
-  ]
+  "situation": {
+    "detail": {
+      "type":"block_destruction",
+      "blocks": [{
+        "blockstate": {
+          "Name": "minecraft:gold_block"
+        }
+      }]
+    },
+    "weight": 500
+  }
 }

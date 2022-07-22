@@ -1,12 +1,10 @@
 {
   "type": "boomood:reverting_from_item",
-  "causes": [
-    {
-      "match": {
-        "item": "minecraft:raw_iron"
-      }
+  "cause": {
+    "match": {
+      "item": "minecraft:raw_iron"
     }
-  ],
+  },
   "situations": [
     {
       "detail": {

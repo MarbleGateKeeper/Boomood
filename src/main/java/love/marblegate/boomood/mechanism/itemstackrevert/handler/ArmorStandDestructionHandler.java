@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.situation.handler;
+package love.marblegate.boomood.mechanism.itemstackrevert.handler;
 
 import com.google.gson.JsonObject;
 import love.marblegate.boomood.config.Configuration;
@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArmorStandDestructionHandler extends ItemStackDropSituationHandler {
+public class ArmorStandDestructionHandler extends ItemStackRevertHandler {
 
     @Override
     public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {

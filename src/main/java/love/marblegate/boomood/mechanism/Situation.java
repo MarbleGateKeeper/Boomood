@@ -1,17 +1,17 @@
-package love.marblegate.boomood.mechanism.situation;
+package love.marblegate.boomood.mechanism;
 
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
-import love.marblegate.boomood.mechanism.situation.handler.*;
+import love.marblegate.boomood.mechanism.itemstackrevert.handler.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 public abstract class Situation {
-    public static Codec<ItemStackDropSituationHandler> CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
+    public static Codec<ItemStackRevertHandler> CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
     {
         try {
             var st = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();

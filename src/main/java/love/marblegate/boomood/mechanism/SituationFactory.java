@@ -1,8 +1,11 @@
-package love.marblegate.boomood.mechanism.situation;
+package love.marblegate.boomood.mechanism;
 
 import com.google.common.collect.Lists;
-import love.marblegate.boomood.mechanism.situation.handler.ItemStackDropSituationHandler;
-import love.marblegate.boomood.mechanism.situation.recipe.ItemStackRevertRecipe;
+import love.marblegate.boomood.mechanism.firerevert.FireBurnSituation;
+import love.marblegate.boomood.mechanism.fluidrevert.FluidFlowSituation;
+import love.marblegate.boomood.mechanism.itemstackrevert.ItemStackDropSituation;
+import love.marblegate.boomood.mechanism.itemstackrevert.handler.ItemStackRevertHandler;
+import love.marblegate.boomood.mechanism.itemstackrevert.ItemStackRevertRecipe;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.SimpleContainer;
@@ -77,11 +80,11 @@ public class SituationFactory {
     private static void handleRemainingItems(List<ItemStack> items, List<ItemStackDropSituation> destinationList) {
         var armorConsumed = items.stream().filter(itemStack -> itemStack.getItem() instanceof ArmorItem).toList();
         if (!armorConsumed.isEmpty())
-            destinationList.add(ItemStackDropSituation.create(ItemStackDropSituationHandler.createArmorHandler(), Lists.newArrayList(armorConsumed)));
+            destinationList.add(ItemStackDropSituation.create(ItemStackRevertHandler.createArmorHandler(), Lists.newArrayList(armorConsumed)));
         var commonConsumed = items.stream().filter(itemStack -> !(itemStack.getItem() instanceof ArmorItem)).toList();
         if (!commonConsumed.isEmpty()){
             for(var item:commonConsumed){
-                destinationList.add(ItemStackDropSituation.create(ItemStackDropSituationHandler.createDefaultHandler(item), Lists.newArrayList(item)));
+                destinationList.add(ItemStackDropSituation.create(ItemStackRevertHandler.createDefaultHandler(item), Lists.newArrayList(item)));
             }
         }
     }

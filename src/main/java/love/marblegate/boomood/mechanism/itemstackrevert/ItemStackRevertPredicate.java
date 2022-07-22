@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.situation.recipe;
+package love.marblegate.boomood.mechanism.itemstackrevert;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -8,8 +8,8 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import love.marblegate.boomood.mechanism.situation.Situation;
-import love.marblegate.boomood.mechanism.situation.handler.ItemStackDropSituationHandler;
+import love.marblegate.boomood.mechanism.Situation;
+import love.marblegate.boomood.mechanism.itemstackrevert.handler.ItemStackRevertHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ItemStackRevertPredicate {
-    public static Codec<List<ItemStackRevertPredicate.Condition>> CODITION_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
+    public static Codec<List<ItemStackRevertPredicate.Condition>> CONDITION_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
     {
         try {
             var json = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
@@ -66,13 +66,13 @@ public class ItemStackRevertPredicate {
 
     public static Codec<ItemStackRevertPredicate> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Situation.CODEC.fieldOf("detail").forGetter(ItemStackRevertPredicate::getHandler),
-            CODITION_CODEC.optionalFieldOf("condition", new ArrayList<>()).forGetter(ItemStackRevertPredicate::getConditions),
+            CONDITION_CODEC.optionalFieldOf("condition", new ArrayList<>()).forGetter(ItemStackRevertPredicate::getConditions),
             Codec.intRange(0,385 * 10 * 10).fieldOf("weight").forGetter(ItemStackRevertPredicate::getWeight)).apply(instance, ItemStackRevertPredicate::new));
-    private final ItemStackDropSituationHandler handler;
+    private final ItemStackRevertHandler handler;
     private final List<Condition> conditions;
     private final int weight;
 
-    public ItemStackRevertPredicate(ItemStackDropSituationHandler handler, List<Condition> conditions, int weight) {
+    public ItemStackRevertPredicate(ItemStackRevertHandler handler, List<Condition> conditions, int weight) {
         this.handler = handler;
         this.conditions = conditions;
         this.weight = weight;
@@ -85,7 +85,7 @@ public class ItemStackRevertPredicate {
         return true;
     }
 
-    public ItemStackDropSituationHandler getHandler() {
+    public ItemStackRevertHandler getHandler() {
         return handler;
     }
 

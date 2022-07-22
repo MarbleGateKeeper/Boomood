@@ -1,8 +1,9 @@
-package love.marblegate.boomood.mechanism.situation;
+package love.marblegate.boomood.mechanism.itemstackrevert;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
-import love.marblegate.boomood.mechanism.situation.handler.ItemStackDropSituationHandler;
+import love.marblegate.boomood.mechanism.Situation;
+import love.marblegate.boomood.mechanism.itemstackrevert.handler.ItemStackRevertHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -12,20 +13,20 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-class ItemStackDropSituation extends Situation {
-    private final ItemStackDropSituationHandler handler;
+public class ItemStackDropSituation extends Situation {
+    private final ItemStackRevertHandler handler;
     private final List<ItemStack> items;
 
-    ItemStackDropSituation(ItemStackDropSituationHandler handler, List<ItemStack> items) {
+    ItemStackDropSituation(ItemStackRevertHandler handler, List<ItemStack> items) {
         this.handler = handler;
         this.items = items;
     }
 
-    static ItemStackDropSituation create(ItemStackDropSituationHandler handler, List<ItemStack> items) {
+    public static ItemStackDropSituation create(ItemStackRevertHandler handler, List<ItemStack> items) {
         return new ItemStackDropSituation(handler, items);
     }
 
-    ItemStackDropSituationHandler getHandler() {
+    ItemStackRevertHandler getHandler() {
         return handler;
     }
 
@@ -58,7 +59,7 @@ class ItemStackDropSituation extends Situation {
 
             // Merge ItemStack for properly reverting
             public Unordered merge() {
-                Multimap<ItemStackDropSituationHandler, List<ItemStack>> mergeMap = MultimapBuilder.hashKeys().arrayListValues().build();
+                Multimap<ItemStackRevertHandler, List<ItemStack>> mergeMap = MultimapBuilder.hashKeys().arrayListValues().build();
                 Unordered ret = new Unordered();
                 for (var situation : this) {
                     mergeMap.put(situation.getHandler(), situation.getItems());

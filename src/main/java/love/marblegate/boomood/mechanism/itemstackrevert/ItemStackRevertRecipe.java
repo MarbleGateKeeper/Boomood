@@ -1,11 +1,12 @@
-package love.marblegate.boomood.mechanism.situation.recipe;
+package love.marblegate.boomood.mechanism.itemstackrevert;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import love.marblegate.boomood.mechanism.situation.handler.ItemStackDropSituationHandler;
+import love.marblegate.boomood.mechanism.itemstackrevert.handler.ItemStackRevertHandler;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -29,20 +30,84 @@ import java.util.Random;
 public class ItemStackRevertRecipe implements Recipe<Container> {
 
     public static Codec<ItemStackRevertRecipe> code(@Nullable ResourceLocation resourceLocation){
-        return RecordCodecBuilder.create(instance -> instance.group(
-                ResourceLocation.CODEC.optionalFieldOf("id",resourceLocation).forGetter(ItemStackRevertRecipe::getId),
-                ItemStackRevertPredicate.CODEC.listOf().fieldOf("situations").forGetter(ItemStackRevertRecipe::getItemStackEntityRevertPredicates),
-               IngredientBox.CODEC.listOf().fieldOf("causes").forGetter(ItemStackRevertRecipe::getIngredientBoxs)
-        ).apply(instance, ItemStackRevertRecipe::new));
+        return Codec.PASSTHROUGH.comapFlatMap(dynamic -> {
+            var json = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
+            ResourceLocation rl;
+            if(json.has("id"))
+                rl = ResourceLocation.CODEC.parse(JsonOps.INSTANCE,json.getAsJsonObject("id")).getOrThrow(false,err->{
+                    throw new JsonSyntaxException(err);
+                });
+            else rl = resourceLocation;
+            List<IngredientBox> boxes;
+            if(json.has("cause")){
+                boxes = new ArrayList<>();
+                try{
+                    var j = json.getAsJsonObject("cause");
+                    boxes.add(IngredientBox.CODEC.parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
+                        throw new JsonSyntaxException(err);
+                    }));
+                } catch(Exception e) {
+                    throw new JsonSyntaxException("\"cause\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent an ingredient.");
+                }
+
+            } else if (json.has("causes")) {
+                try{
+                    var j = json.getAsJsonObject("causes");
+                    boxes = IngredientBox.CODEC.listOf().parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
+                        throw new JsonSyntaxException(err);});
+                } catch(Exception e) {
+                    throw new JsonSyntaxException("\"causes\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent ingredients.");
+                }
+            } else {
+                return DataResult.error("Recipe json must have either cause or causes.");
+            }
+            List<ItemStackRevertPredicate> situations;
+            if(json.has("situation")){
+                try{
+                    var j = json.getAsJsonObject("situation");
+                    situations = new ArrayList<>();
+                    situations.add(ItemStackRevertPredicate.CODEC.parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
+                        throw new JsonSyntaxException(err);
+                    }));
+                } catch(Exception e) {
+                    throw new JsonSyntaxException("\"situation\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent a situation.");
+                }
+            } else if (json.has("situations")) {
+                try{
+                    var j = json.getAsJsonArray("situations");
+                    situations = ItemStackRevertPredicate.CODEC.listOf().parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
+                        throw new JsonSyntaxException(err);
+                    });
+                } catch(Exception e) {
+                    throw new JsonSyntaxException("\"situations\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent situations.");
+                }
+
+            } else {
+                return DataResult.error("Recipe json must have either situation or situations.");
+            }
+            return DataResult.success(new ItemStackRevertRecipe(rl,situations,boxes));
+        },recipe->{
+            var result = new JsonObject();
+            result.add("id", ResourceLocation.CODEC.encodeStart(JsonOps.INSTANCE,recipe.id).getOrThrow(false, err->{}));
+            if(recipe.ingredientBoxes.size()==1)
+                result.add("cause", IngredientBox.CODEC.encodeStart(JsonOps.INSTANCE,recipe.ingredientBoxes.get(0)).getOrThrow(false, err->{}));
+            else result.add("causes", IngredientBox.CODEC.listOf().encodeStart(JsonOps.INSTANCE,recipe.ingredientBoxes).getOrThrow(false, err->{}));
+            if(recipe.predicates.size()==1)
+                result.add("situation", ItemStackRevertPredicate.CODEC.encodeStart(JsonOps.INSTANCE,recipe.predicates.get(0)).getOrThrow(false, err->{}));
+            else result.add("situations", ItemStackRevertPredicate.CODEC.listOf().encodeStart(JsonOps.INSTANCE,recipe.predicates).getOrThrow(false, err->{}));
+            return new Dynamic<>(JsonOps.INSTANCE, result);
+        });
     }
+
+
     private final ResourceLocation id;
-    private final List<ItemStackRevertPredicate> itemStackRevertPredicates;
+    private final List<ItemStackRevertPredicate> predicates;
     private final List<IngredientBox> ingredientBoxes;
 
 
-    public ItemStackRevertRecipe(ResourceLocation id, List<ItemStackRevertPredicate> itemStackRevertPredicates, List<IngredientBox> ingredientBoxes) {
+    public ItemStackRevertRecipe(ResourceLocation id, List<ItemStackRevertPredicate> predicates, List<IngredientBox> ingredientBoxes) {
         this.id = id;
-        this.itemStackRevertPredicates = itemStackRevertPredicates;
+        this.predicates = predicates;
         this.ingredientBoxes = ingredientBoxes;
     }
 
@@ -99,8 +164,8 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
     }
 
     // Method for exporting result
-    public Optional<ItemStackDropSituationHandler> produceSituationHandler(LevelAccessor level, BlockPos blockPos) {
-        List<ItemStackRevertPredicate> qualifiedList = itemStackRevertPredicates.stream()
+    public Optional<ItemStackRevertHandler> produceSituationHandler(LevelAccessor level, BlockPos blockPos) {
+        List<ItemStackRevertPredicate> qualifiedList = predicates.stream()
                 .filter(itemStackRevertPredicate -> itemStackRevertPredicate.valid(level, blockPos)).toList();
         if (qualifiedList.isEmpty()) {
             return Optional.empty();
@@ -154,7 +219,7 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
     }
 
     public List<ItemStackRevertPredicate> getItemStackEntityRevertPredicates() {
-        return itemStackRevertPredicates;
+        return predicates;
     }
 
     public List<IngredientBox> getIngredientBoxs() {

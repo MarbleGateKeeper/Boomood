@@ -1,5 +1,6 @@
-package love.marblegate.boomood.mechanism.situation;
+package love.marblegate.boomood.mechanism.firerevert;
 
+import love.marblegate.boomood.mechanism.Situation;
 import love.marblegate.boomood.misc.ServerUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;

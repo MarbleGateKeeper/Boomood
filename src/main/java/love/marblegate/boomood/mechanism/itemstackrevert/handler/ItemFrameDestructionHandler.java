@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.situation.handler;
+package love.marblegate.boomood.mechanism.itemstackrevert.handler;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-public class ItemFrameDestructionHandler extends ItemStackDropSituationHandler {
+public class ItemFrameDestructionHandler extends ItemStackRevertHandler {
 
     @Nullable
     private final ItemStack target;

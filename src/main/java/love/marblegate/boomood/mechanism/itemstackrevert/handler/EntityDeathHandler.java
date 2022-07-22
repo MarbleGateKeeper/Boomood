@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.situation.handler;
+package love.marblegate.boomood.mechanism.itemstackrevert.handler;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -13,7 +13,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 
-public class EntityDeathHandler extends ItemStackDropSituationHandler {
+public class EntityDeathHandler extends ItemStackRevertHandler {
     private final EntityType<?> entityType;
 
     public EntityDeathHandler(JsonObject jsonObject) {

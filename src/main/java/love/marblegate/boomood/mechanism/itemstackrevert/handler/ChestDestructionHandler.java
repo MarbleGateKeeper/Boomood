@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.situation.handler;
+package love.marblegate.boomood.mechanism.itemstackrevert.handler;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -18,7 +18,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import java.util.List;
 import java.util.Random;
 
-public class ChestDestructionHandler extends ItemStackDropSituationHandler {
+public class ChestDestructionHandler extends ItemStackRevertHandler {
     private final ItemStack target;
 
     public ChestDestructionHandler(JsonObject jsonObject) {

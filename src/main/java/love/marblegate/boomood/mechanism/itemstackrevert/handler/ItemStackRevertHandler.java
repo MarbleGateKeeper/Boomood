@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.situation.handler;
+package love.marblegate.boomood.mechanism.itemstackrevert.handler;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -10,12 +10,12 @@ import net.minecraft.world.level.Level;
 
 import java.util.*;
 
-public abstract class ItemStackDropSituationHandler {
-    public static ItemStackDropSituationHandler createArmorHandler() {
+public abstract class ItemStackRevertHandler {
+    public static ItemStackRevertHandler createArmorHandler() {
         return new ArmorStandDestructionHandler();
     }
 
-    public static ItemStackDropSituationHandler createDefaultHandler(ItemStack itemStack) {
+    public static ItemStackRevertHandler createDefaultHandler(ItemStack itemStack) {
         return new ChestDestructionHandler(itemStack);
     }
 
@@ -27,7 +27,7 @@ public abstract class ItemStackDropSituationHandler {
 
     public abstract List<List<ItemStack>> mergeItemStack(List<List<ItemStack>> itemStackListList);
 
-    public static ItemStackDropSituationHandler create(JsonObject jsonObject) {
+    public static ItemStackRevertHandler create(JsonObject jsonObject) {
         var st = GsonHelper.getAsString(jsonObject, "type");
         return switch (st) {
             case "entity_death" -> new EntityDeathHandler(jsonObject);
