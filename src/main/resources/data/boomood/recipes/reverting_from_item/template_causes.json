@@ -1,0 +1,52 @@
+{
+  "type": "boomood:reverting_from_item",
+  "causes": [
+    {
+      "match": {
+        "item": "minecraft:raw_gold"
+      }
+    },
+    {
+      "mode": "standard",
+      "match": [
+        {
+          "item": "minecraft:gold_ingot"
+        },
+        {
+          "tag": "minecraft:gold_ores"
+        }
+      ],
+      "max": 1
+    },
+    {
+      "mode": "exact",
+      "match": {
+        "item": "minecraft:enchanted_book",
+        "nbt": "{\"StoredEnchantments\": [{\"id\": \"minecraft:soul_speed\", \"lvl\": 3s}]}"
+      },
+      "min": 1
+    },
+    {
+      "mode": "partial",
+      "match": {
+        "item": "minecraft:enchanted_book",
+        "nbt": "{\"StoredEnchantments\": [{\"lvl\": 1s}]}"
+      },
+      "min": 1,
+      "max": 1
+    }
+  ],
+  "situations": [
+    {
+      "detail": {
+        "type":"block_destruction",
+        "blocks": [{
+          "blockstate": {
+            "Name": "minecraft:gold_block"
+          }
+        }]
+      },
+      "weight": 500
+    }
+  ]
+}

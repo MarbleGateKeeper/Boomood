@@ -1,6 +1,6 @@
 package love.marblegate.boomood.registry;
 
-import love.marblegate.boomood.mechanism.situation.recipe.ItemStackEntityRevertRecipe;
+import love.marblegate.boomood.mechanism.situation.recipe.ItemStackRevertRecipe;
 import net.minecraft.core.Registry;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -11,12 +11,12 @@ import net.minecraftforge.registries.RegistryObject;
 public class RecipeRegistry {
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registry.RECIPE_TYPE_REGISTRY, "boomood");
 
-    public static final RegistryObject<RecipeType<ItemStackEntityRevertRecipe>> TYPE_NOISOLPXE_ITEMSTACK_REVERT = RECIPE_TYPES.register("noisolpxe_itemstack_revert", () -> new RecipeType<>() {
+    public static final RegistryObject<RecipeType<ItemStackRevertRecipe>> REVERTING_FROM_ITEM = RECIPE_TYPES.register("reverting_from_item", () -> new RecipeType<>() {
         public String toString() {
-            return "noisolpxe_itemstack_revert";
+            return "reverting_from_item";
         }
     });
 
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, "boomood");
-    public static final RegistryObject<RecipeSerializer<ItemStackEntityRevertRecipe>> SERIALIZER_NOISOLPXE_ITEMSTACK_REVERT = RECIPE_SERIALIZERS.register("noisolpxe_itemstack_revert", ItemStackEntityRevertRecipe.Serializer::new);
+    public static final RegistryObject<RecipeSerializer<ItemStackRevertRecipe>> REVERTING_FROM_ITEM_SERIALIZER = RECIPE_SERIALIZERS.register("reverting_from_item", ItemStackRevertRecipe.Serializer::new);
 }

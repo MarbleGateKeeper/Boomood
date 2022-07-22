@@ -20,19 +20,19 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemStackEntityRevertPredicate {
-    public static Codec<List<ItemStackEntityRevertPredicate.Condition>> CODITION_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
+public class ItemStackRevertPredicate {
+    public static Codec<List<ItemStackRevertPredicate.Condition>> CODITION_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
     {
         try {
             var json = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
-            List<ItemStackEntityRevertPredicate.Condition> ret = new ArrayList<>();
+            List<ItemStackRevertPredicate.Condition> ret = new ArrayList<>();
             if (json.size() != 0) {
                 var heightConditionJson = json.getAsJsonObject("height");
                 if (heightConditionJson != null)
-                    ret.add(new ItemStackEntityRevertPredicate.HeightPredicate(heightConditionJson));
+                    ret.add(new ItemStackRevertPredicate.HeightPredicate(heightConditionJson));
                 var biomeConditionJson = json.getAsJsonObject("biome");
                 if (biomeConditionJson != null)
-                    ret.add(new ItemStackEntityRevertPredicate.BiomePredicate(biomeConditionJson));
+                    ret.add(new ItemStackRevertPredicate.BiomePredicate(biomeConditionJson));
             }
             return DataResult.success(ret);
         } catch (Exception e) {
@@ -41,17 +41,17 @@ public class ItemStackEntityRevertPredicate {
     }, conditions -> {
         var ret = new JsonObject();
         for(var condition:conditions){
-            if(condition instanceof ItemStackEntityRevertPredicate.HeightPredicate heightPredicate){
+            if(condition instanceof ItemStackRevertPredicate.HeightPredicate heightPredicate){
                 var temp = new JsonObject();
-                if(heightPredicate.getType() == ItemStackEntityRevertPredicate.HeightPredicate.Type.GREATER)
+                if(heightPredicate.getType() == ItemStackRevertPredicate.HeightPredicate.Type.GREATER)
                     temp.addProperty("type","greater");
                 else temp.addProperty("type","less");
                 temp.addProperty("content",heightPredicate.getLimit());
                 ret.add("height",temp);
             } else {
-                var condition1 = (ItemStackEntityRevertPredicate.BiomePredicate) condition;
+                var condition1 = (ItemStackRevertPredicate.BiomePredicate) condition;
                 var temp = new JsonObject();
-                if(condition1.getType() == ItemStackEntityRevertPredicate.BiomePredicate.Type.ALLOWLIST)
+                if(condition1.getType() == ItemStackRevertPredicate.BiomePredicate.Type.ALLOWLIST)
                     temp.addProperty("type","allowlist");
                 else temp.addProperty("type","blocklist");
                 var temp2 = new JsonArray();
@@ -64,15 +64,15 @@ public class ItemStackEntityRevertPredicate {
         return new Dynamic<>(JsonOps.INSTANCE,ret);
     });
 
-    public static Codec<ItemStackEntityRevertPredicate> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Situation.CODEC.fieldOf("detail").forGetter(ItemStackEntityRevertPredicate::getHandler),
-            CODITION_CODEC.optionalFieldOf("condition", new ArrayList<>()).forGetter(ItemStackEntityRevertPredicate::getConditions),
-            Codec.intRange(0,385 * 10 * 10).fieldOf("weight").forGetter(ItemStackEntityRevertPredicate::getWeight)).apply(instance, ItemStackEntityRevertPredicate::new));
+    public static Codec<ItemStackRevertPredicate> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Situation.CODEC.fieldOf("detail").forGetter(ItemStackRevertPredicate::getHandler),
+            CODITION_CODEC.optionalFieldOf("condition", new ArrayList<>()).forGetter(ItemStackRevertPredicate::getConditions),
+            Codec.intRange(0,385 * 10 * 10).fieldOf("weight").forGetter(ItemStackRevertPredicate::getWeight)).apply(instance, ItemStackRevertPredicate::new));
     private final ItemStackDropSituationHandler handler;
     private final List<Condition> conditions;
     private final int weight;
 
-    public ItemStackEntityRevertPredicate(ItemStackDropSituationHandler handler, List<Condition> conditions, int weight) {
+    public ItemStackRevertPredicate(ItemStackDropSituationHandler handler, List<Condition> conditions, int weight) {
         this.handler = handler;
         this.conditions = conditions;
         this.weight = weight;
@@ -113,11 +113,6 @@ public class ItemStackEntityRevertPredicate {
             else throw new JsonSyntaxException("Expected type to be \"less\" or \"greater\", was " + t);
         }
 
-        HeightPredicate(int limit, Type type) {
-            this.limit = limit;
-            this.type = type;
-        }
-
         @Override
         public boolean valid(LevelAccessor level, BlockPos blockPos) {
             return (type == Type.LESS) ? blockPos.getY() < limit : blockPos.getY() > limit;
@@ -156,11 +151,6 @@ public class ItemStackEntityRevertPredicate {
                 }
                 biomeList.add(result);
             }
-        }
-
-        public BiomePredicate(List<Biome> biomeList, Type type) {
-            this.biomeList = biomeList;
-            this.type = type;
         }
 
         @Override

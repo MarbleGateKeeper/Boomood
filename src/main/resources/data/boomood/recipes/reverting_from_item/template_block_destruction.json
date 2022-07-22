@@ -1,10 +1,12 @@
 {
-  "type": "boomood:noisolpxe_itemstack_revert",
-  "cause": {
-    "item": "minecraft:raw_gold"
-  },
-  "upperBound": 1,
-  "lowerBound": 1,
+  "type": "boomood:reverting_from_item",
+  "causes": [
+    {
+      "match": {
+        "item": "minecraft:raw_iron"
+      }
+    }
+  ],
   "situations": [
     {
       "detail": {
@@ -12,10 +14,7 @@
         "blocks":[{
           "blockstate": {
             "Name": "minecraft:furnace",
-            "Properties": {
-              "facing": "north",
-              "lit": true
-            }
+            "Properties": "{\"facing\": \"north\"}"
           },
           "count": 5,
           "tags": {
@@ -23,7 +22,7 @@
           }
         },{
           "blockstate": {
-            "Name": "minecraft:gold_block"
+            "Name": "minecraft:iron_block"
           }
         }]
       },

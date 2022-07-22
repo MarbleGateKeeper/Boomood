@@ -1,10 +1,12 @@
 {
-  "type": "boomood:noisolpxe_itemstack_revert",
-  "cause": {
-    "item": "minecraft:bedrock"
-  },
-  "upperBound": 1,
-  "lowerBound": 1,
+  "type": "boomood:reverting_from_item",
+  "causes": [
+    {
+      "match": {
+        "item": "minecraft:bedrock"
+      }
+    }
+  ],
   "situations": [
     {
       "detail": {
