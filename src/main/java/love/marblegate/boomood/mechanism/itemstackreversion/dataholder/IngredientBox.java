@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.itemstackreversion;
+package love.marblegate.boomood.mechanism.itemstackreversion.dataholder;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -87,6 +87,16 @@ public class IngredientBox {
 
     public int max() {
         return maxCount;
+    }
+
+    @Override
+    public String toString() {
+        return "IngredientBox{" +
+                "ingredient=" + ingredient +
+                ", type=" + type +
+                ", minCount=" + minCount +
+                ", maxCount=" + maxCount +
+                '}';
     }
 
     public enum Type{

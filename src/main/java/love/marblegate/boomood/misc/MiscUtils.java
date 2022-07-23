@@ -169,9 +169,7 @@ public class MiscUtils {
             var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
             if (itemhandler.isPresent()) {
                 ItemStack finalInsertItemStack = insertItemStack;
-                itemhandler.ifPresent(cap -> {
-                    cap.insertItem(0, finalInsertItemStack, false);
-                });
+                itemhandler.ifPresent(cap -> cap.insertItem(0, finalInsertItemStack, false));
             }
         }
     }
@@ -194,7 +192,7 @@ public class MiscUtils {
                 if(level.getBlockState(bp).is(Blocks.CHEST)){
                     BlockEntity chestBlockEntity = level.getBlockEntity(bp);
                     var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-                    var bi = new AtomicReference<>(itemStack);
+                    var bi = new AtomicReference<>(itemStack.copy());
                     if(itemhandler.isPresent()){
                         itemhandler.ifPresent(cap->{
                             for(int i=0;i<cap.getSlots();i++){

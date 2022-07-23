@@ -1,23 +1,32 @@
-package love.marblegate.boomood.mechanism.itemstackreversion.handler;
+package love.marblegate.boomood.mechanism.itemstackreversion.result;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.JsonOps;
+import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.world.entity.decoration.GlowItemFrame;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class ChestDestructionHandler extends ItemStackRevertHandler {
-    // TODO fix: it seems like itemstack info does not be correctly parsed
+public class ItemFrameDestructionSituationResult extends ReversionSituationResult {
+
+    @Nullable
     private final List<ItemStack> targets;
 
-    public ChestDestructionHandler(JsonObject jsonObject) {
+    public ItemFrameDestructionSituationResult(JsonObject jsonObject) {
         if (jsonObject.has("itemstack")) {
             try{
                 var itemStackJson = GsonHelper.getAsJsonObject(jsonObject, "itemstack");
@@ -41,29 +50,10 @@ public class ChestDestructionHandler extends ItemStackRevertHandler {
         } else targets = null;
     }
 
-    public ChestDestructionHandler() {
-        this.targets = null;
-    }
-
-    @Override
-    public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
-        var insertItemStacks = targets == null ? List.of(itemStacks.get(0)) : targets;
-        for(var itemStack:insertItemStacks){
-            MiscUtils.insertIntoChestOrCreateChest(level, blockPos, itemStack.copy());
-        }
-        // TODO add custom particle effect for indication & add implement explosion particle
-    }
-
-
-    @Override
-    public int priority() {
-        return 50;
-    }
-
     @Override
     public JsonObject toJson() {
         var ret = new JsonObject();
-        ret.addProperty("type", "chest_destruction");
+        ret.addProperty("type", "item_frame_destruction");
         if (targets != null) {
             if(targets.size()==1)
                 ret.add("itemstack", MiscUtils.ITEMSTACK_CODEC.encodeStart(JsonOps.INSTANCE, targets.get(0)).get().left().get());
@@ -74,13 +64,19 @@ public class ChestDestructionHandler extends ItemStackRevertHandler {
     }
 
     @Override
-    public List<List<ItemStack>> mergeItemStack(List<List<ItemStack>> itemStackListList) {
-        // No need to merge
-        return itemStackListList;
+    public String situationId() {
+        return "item_frame_destruction";
+    }
+
+    @Nullable
+    public List<ItemStack> getTargets() {
+        return targets;
     }
 
     @Override
     public String toString() {
-        return "ChestDestructionHandler{" + "target=" + targets + '}';
+        return "ItemFrameDestructionSituationResult{" +
+                "targets=" + targets +
+                '}';
     }
 }

@@ -1,6 +1,6 @@
 package love.marblegate.boomood.item;
 
-import love.marblegate.boomood.mechanism.SituationFactory;
+import love.marblegate.boomood.mechanism.ReversionFactory;
 import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -22,16 +22,11 @@ public class TriggerItem extends Item {
             var groundZero = MiscUtils.findLookAt(player);
             var area = MiscUtils.createScanningArea(groundZero);
             // Extinguish fire
-            SituationFactory.fireBurnRevert(area)
-                    .revert(level, groundZero, player);
+            ReversionFactory.fireBurnRevert(area).revert(player ,groundZero);
             // Remove non-source liquid & Water
-            SituationFactory.fluidFlowRevert(area)
-                    .revert(level, groundZero, player);
+            ReversionFactory.fluidFlowRevert(area).revert(player ,groundZero);
             // Revert item Drop
-            SituationFactory.itemDropRevert(level, groundZero, area)
-                    .merge()
-                    .sort()
-                    .revert(level, groundZero, player);
+            ReversionFactory.itemDropRevert(level, groundZero, area).revert(player ,groundZero);
 
         }
         return InteractionResultHolder.sidedSuccess(player.getItemInHand(interactionHand), level.isClientSide());

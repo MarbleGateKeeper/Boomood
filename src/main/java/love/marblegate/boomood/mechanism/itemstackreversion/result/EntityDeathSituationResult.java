@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.itemstackreversion.handler;
+package love.marblegate.boomood.mechanism.itemstackreversion.result;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -13,36 +13,15 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 
-public class EntityDeathHandler extends ItemStackRevertHandler {
+public class EntityDeathSituationResult extends ReversionSituationResult {
     private final EntityType<?> entityType;
 
-    public EntityDeathHandler(JsonObject jsonObject) {
+    public EntityDeathSituationResult(JsonObject jsonObject) {
         var es = GsonHelper.getAsString(jsonObject, "entity");
         entityType = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(es));
         if (entityType == null) {
             throw new JsonSyntaxException("Invalid entity type: " + es);
         }
-    }
-
-    EntityDeathHandler(EntityType<?> entityType) {
-        this.entityType = entityType;
-    }
-
-    @Override
-    public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
-        //TODO
-    }
-
-    @Override
-    public int priority() {
-        return 0;
-    }
-
-    @Override
-    public List<List<ItemStack>> mergeItemStack(List<List<ItemStack>> itemStackListList) {
-        // For reverting entity death, how itemStack arrangement is preprocessed is irrelevant.
-        // So just return what is passed in.
-        return itemStackListList;
     }
 
     @Override
@@ -54,7 +33,15 @@ public class EntityDeathHandler extends ItemStackRevertHandler {
     }
 
     @Override
+    public String situationId() {
+        return "entity_death";
+    }
+
+    @Override
     public String toString() {
-        return "EntityDeathHandler{" + "entityType=" + entityType + '}';
+        // TODO need regenerate after completion
+        return "EntityDeathSituationResult{" +
+                "entityType=" + entityType +
+                '}';
     }
 }

@@ -8,8 +8,8 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import love.marblegate.boomood.mechanism.Situation;
-import love.marblegate.boomood.mechanism.itemstackreversion.handler.ItemStackRevertHandler;
+import love.marblegate.boomood.mechanism.Reversion;
+import love.marblegate.boomood.mechanism.itemstackreversion.result.ReversionSituationResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -20,19 +20,19 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemStackRevertPredicate {
-    public static Codec<List<ItemStackRevertPredicate.Condition>> CONDITION_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
+public class ReversionSituation {
+    static Codec<List<ReversionSituation.Condition>> CONDITION_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
     {
         try {
             var json = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
-            List<ItemStackRevertPredicate.Condition> ret = new ArrayList<>();
+            List<ReversionSituation.Condition> ret = new ArrayList<>();
             if (json.size() != 0) {
                 var heightConditionJson = json.getAsJsonObject("height");
                 if (heightConditionJson != null)
-                    ret.add(new ItemStackRevertPredicate.HeightPredicate(heightConditionJson));
+                    ret.add(new ReversionSituation.HeightPredicate(heightConditionJson));
                 var biomeConditionJson = json.getAsJsonObject("biome");
                 if (biomeConditionJson != null)
-                    ret.add(new ItemStackRevertPredicate.BiomePredicate(biomeConditionJson));
+                    ret.add(new ReversionSituation.BiomePredicate(biomeConditionJson));
             }
             return DataResult.success(ret);
         } catch (Exception e) {
@@ -41,17 +41,17 @@ public class ItemStackRevertPredicate {
     }, conditions -> {
         var ret = new JsonObject();
         for(var condition:conditions){
-            if(condition instanceof ItemStackRevertPredicate.HeightPredicate heightPredicate){
+            if(condition instanceof ReversionSituation.HeightPredicate heightPredicate){
                 var temp = new JsonObject();
-                if(heightPredicate.getType() == ItemStackRevertPredicate.HeightPredicate.Type.GREATER)
+                if(heightPredicate.getType() == ReversionSituation.HeightPredicate.Type.GREATER)
                     temp.addProperty("type","greater");
                 else temp.addProperty("type","less");
                 temp.addProperty("content",heightPredicate.getLimit());
                 ret.add("height",temp);
             } else {
-                var condition1 = (ItemStackRevertPredicate.BiomePredicate) condition;
+                var condition1 = (ReversionSituation.BiomePredicate) condition;
                 var temp = new JsonObject();
-                if(condition1.getType() == ItemStackRevertPredicate.BiomePredicate.Type.ALLOWLIST)
+                if(condition1.getType() == ReversionSituation.BiomePredicate.Type.ALLOWLIST)
                     temp.addProperty("type","allowlist");
                 else temp.addProperty("type","blocklist");
                 var temp2 = new JsonArray();
@@ -64,16 +64,16 @@ public class ItemStackRevertPredicate {
         return new Dynamic<>(JsonOps.INSTANCE,ret);
     });
 
-    public static Codec<ItemStackRevertPredicate> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Situation.CODEC.fieldOf("detail").forGetter(ItemStackRevertPredicate::getHandler),
-            CONDITION_CODEC.optionalFieldOf("condition", new ArrayList<>()).forGetter(ItemStackRevertPredicate::getConditions),
-            Codec.intRange(0,385 * 10 * 10).fieldOf("weight").forGetter(ItemStackRevertPredicate::getWeight)).apply(instance, ItemStackRevertPredicate::new));
-    private final ItemStackRevertHandler handler;
+    public static Codec<ReversionSituation> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Reversion.CODEC.fieldOf("detail").forGetter(ReversionSituation::getReversionCase),
+            CONDITION_CODEC.optionalFieldOf("condition", new ArrayList<>()).forGetter(ReversionSituation::getConditions),
+            Codec.intRange(0,385 * 10 * 10).fieldOf("weight").forGetter(ReversionSituation::getWeight)).apply(instance, ReversionSituation::new));
+    private final ReversionSituationResult reversionSituationResult;
     private final List<Condition> conditions;
     private final int weight;
 
-    public ItemStackRevertPredicate(ItemStackRevertHandler handler, List<Condition> conditions, int weight) {
-        this.handler = handler;
+    public ReversionSituation(ReversionSituationResult reversionSituationResult, List<Condition> conditions, int weight) {
+        this.reversionSituationResult = reversionSituationResult;
         this.conditions = conditions;
         this.weight = weight;
     }
@@ -85,8 +85,8 @@ public class ItemStackRevertPredicate {
         return true;
     }
 
-    public ItemStackRevertHandler getHandler() {
-        return handler;
+    public ReversionSituationResult getReversionCase() {
+        return reversionSituationResult;
     }
 
     public int getWeight() {

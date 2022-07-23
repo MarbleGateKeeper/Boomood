@@ -38,6 +38,8 @@ public class Configuration {
         public static ForgeConfigSpec.BooleanValue ITEM_FRAME_SITUATION_REMEDY_IS_SUPPORT_BLOCK;
     }
 
+    public static ForgeConfigSpec.BooleanValue DEBUG_MODE;
+
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
@@ -46,6 +48,7 @@ public class Configuration {
                 .defineInRange("RADIUS", 5, 2, 16);
         Common.AREA_SHAPE = builder.comment("The reversion area shape").defineEnum("AREA_SHAPE", Common.AreaType.SPHERE);
         Common.REMEDY_TYPE = builder.comment("If there is no enough space in reversion area, it decides how are is reverting process will be extend.").defineEnum("REMEDY_TYPE", Common.RemedyType.UPWARD);
+        DEBUG_MODE = builder.comment("Player should ignore this setting normally. It allows printing verbose debug information.").define("DEBUG_MODE", false);
         builder.pop();
 
         builder.push("itemstack_reversion");
