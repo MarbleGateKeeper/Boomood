@@ -34,7 +34,7 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
             var json = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
             ResourceLocation rl;
             if(json.has("id"))
-                rl = ResourceLocation.CODEC.parse(JsonOps.INSTANCE,json.getAsJsonObject("id")).getOrThrow(false,err->{
+                rl = ResourceLocation.CODEC.parse(JsonOps.INSTANCE,json.getAsJsonPrimitive("id")).getOrThrow(false,err->{
                     throw new JsonSyntaxException(err);
                 });
             else rl = resourceLocation;

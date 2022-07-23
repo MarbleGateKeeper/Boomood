@@ -70,7 +70,9 @@ public class MiscUtils {
         var ret = new JsonObject();
         ret.addProperty("id",itemStack.getItem().getRegistryName().toString());
         ret.addProperty("Count",itemStack.getCount());
-        ret.addProperty("Count",itemStack.getTag().getAsString());
+        if(itemStack.getTag()!=null){
+            ret.addProperty("nbt",itemStack.getTag().getAsString());
+        }
         return new Dynamic<>(JsonOps.INSTANCE,ret);
     });
 
