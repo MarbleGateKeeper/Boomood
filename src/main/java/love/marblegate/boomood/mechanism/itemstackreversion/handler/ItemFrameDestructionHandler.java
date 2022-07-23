@@ -15,30 +15,39 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraftforge.items.CapabilityItemHandler;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 public class ItemFrameDestructionHandler extends ItemStackRevertHandler {
 
     @Nullable
-    private final ItemStack target;
+    private final List<ItemStack> targets;
 
     public ItemFrameDestructionHandler(JsonObject jsonObject) {
         if (jsonObject.has("itemstack")) {
-            var itemStackJson = GsonHelper.getAsJsonObject(jsonObject, "itemstack");
-            var itemStackResult = ItemStack.CODEC.parse(JsonOps.INSTANCE, itemStackJson);
-            target = itemStackResult.getOrThrow(false, err -> {
-                throw new JsonSyntaxException("Invalid block nbt: " + itemStackJson + ".Error: " + err);
-            });
-        } else target = null;
+            try{
+                var itemStackJson = GsonHelper.getAsJsonObject(jsonObject, "itemstack");
+                var itemStackResult = MiscUtils.ITEMSTACK_CODEC.parse(JsonOps.INSTANCE, itemStackJson);
+                targets = List.of(itemStackResult.getOrThrow(false, err -> {
+                    throw new JsonSyntaxException("Invalid itemstack: " + itemStackJson + ". Error: " + err);
+                }));
+            }catch(ClassCastException e){
+                throw new JsonSyntaxException("\"itemstack\" in recipe json must be a JsonObject to represent a itemstack.");
+            }
+        } else if (jsonObject.has("itemstacks")) {
+            try{
+                var itemStackJson = GsonHelper.getAsJsonArray(jsonObject, "itemstacks");
+                var itemStackResult = MiscUtils.ITEMSTACK_CODEC.listOf().parse(JsonOps.INSTANCE, itemStackJson);
+                targets = itemStackResult.getOrThrow(false, err -> {
+                    throw new JsonSyntaxException("Invalid itemstacks: " + itemStackJson + ". Error: " + err);
+                });
+            }catch(ClassCastException e){
+                throw new JsonSyntaxException("\"itemstacks\" in recipe json must be a JsonArray to represent itemstacks.");
+            }
+        } else targets = null;
     }
 
     @Override
@@ -47,45 +56,49 @@ public class ItemFrameDestructionHandler extends ItemStackRevertHandler {
         var isGlowItemFrame = Math.random() < Configuration.ItemStackReversion.GLOW_ITEM_FRAME_POSSIBILITY.get();
         var blockPosList = MiscUtils.createShuffledBlockPosList(MiscUtils.createScanningArea(blockPos));
         ItemFrame itemFrame;
-        var displayItemStack = target == null ? itemStacks.get(0) : target;
-        for (var bp : blockPosList) {
-            for (var direction : Direction.values()) {
-                if (isGlowItemFrame) itemFrame = new GlowItemFrame(level, bp, direction);
-                else itemFrame = new ItemFrame(level, bp, direction);
-                if (itemFrame.survives()) {
-                    itemFrame.setItem(displayItemStack);
-                    level.addFreshEntity(itemFrame);
-                    displayItemStack = ItemStack.EMPTY;
-                    // TODO add custom particle effect for indication & add implement explosion particle
-                    break;
-                }
-            }
-            if (displayItemStack.isEmpty()) break;
-        }
-        if (!displayItemStack.isEmpty()) {
-            if (Configuration.ItemStackReversion.ITEM_FRAME_SITUATION_REMEDY_IS_SUPPORT_BLOCK.get()) {
-                var tryTime = 0;
-                while (tryTime < 3) {
-                    var optional = MiscUtils.randomizeDestination(level, blockPos);
-                    if (optional.isEmpty()) return;
-                    var destination = optional.get();
-                    var od = getEmptyNeighborDirection(level, destination);
-                    if (od.isEmpty()) {
-                        tryTime++;
-                    } else {
-                        level.setBlockAndUpdate(destination.relative(od.get()), MiscUtils.getSupportBlock(level, destination.relative(od.get())));
-                        if (isGlowItemFrame) itemFrame = new GlowItemFrame(level, destination, od.get().getOpposite());
-                        else itemFrame = new ItemFrame(level, destination, od.get().getOpposite());
-                        itemFrame.setItem(displayItemStack);
+        var displayItemStack = targets == null ? itemStacks : targets;
+        for(var itemStack:displayItemStack){
+            var is = itemStack.copy();
+            for (var bp : blockPosList) {
+                for (var direction : Direction.values()) {
+                    if (isGlowItemFrame) itemFrame = new GlowItemFrame(level, bp, direction);
+                    else itemFrame = new ItemFrame(level, bp, direction);
+                    if (itemFrame.survives()) {
+                        itemFrame.setItem(is.copy());
                         level.addFreshEntity(itemFrame);
+                        is = ItemStack.EMPTY;
                         // TODO add custom particle effect for indication & add implement explosion particle
                         break;
                     }
                 }
-            } else {
-                MiscUtils.insertIntoChestOrCreateChest(level, blockPos, displayItemStack);
+                if (is.isEmpty()) break;
+            }
+            if (!is.isEmpty()) {
+                if (Configuration.ItemStackReversion.ITEM_FRAME_SITUATION_REMEDY_IS_SUPPORT_BLOCK.get()) {
+                    var tryTime = 0;
+                    while (tryTime < 3) {
+                        var optional = MiscUtils.randomizeDestination(level, blockPos);
+                        if (optional.isEmpty()) return;
+                        var destination = optional.get();
+                        var od = getEmptyNeighborDirection(level, destination);
+                        if (od.isEmpty()) {
+                            tryTime++;
+                        } else {
+                            level.setBlockAndUpdate(destination.relative(od.get()), MiscUtils.getSupportBlock(level, destination.relative(od.get())));
+                            if (isGlowItemFrame) itemFrame = new GlowItemFrame(level, destination, od.get().getOpposite());
+                            else itemFrame = new ItemFrame(level, destination, od.get().getOpposite());
+                            itemFrame.setItem(is);
+                            level.addFreshEntity(itemFrame);
+                            // TODO add custom particle effect for indication & add implement explosion particle
+                            break;
+                        }
+                    }
+                } else {
+                    MiscUtils.insertIntoChestOrCreateChest(level, blockPos, is);
+                }
             }
         }
+
     }
 
 
@@ -123,9 +136,17 @@ public class ItemFrameDestructionHandler extends ItemStackRevertHandler {
     public JsonObject toJson() {
         var ret = new JsonObject();
         ret.addProperty("type", "item_frame_destruction");
-        if (target != null) {
-            ret.add("itemstack", ItemStack.CODEC.encodeStart(JsonOps.INSTANCE, target).get().left().get());
+        if (targets != null) {
+            if(targets.size()==1)
+                ret.add("itemstack", MiscUtils.ITEMSTACK_CODEC.encodeStart(JsonOps.INSTANCE, targets.get(0)).get().left().get());
+            else
+                ret.add("itemstacks", MiscUtils.ITEMSTACK_CODEC.listOf().encodeStart(JsonOps.INSTANCE, targets).get().left().get());
         }
         return ret;
+    }
+
+    @Override
+    public String toString() {
+        return "ItemFrameDestructionHandler{" + "targets=" + targets + '}';
     }
 }

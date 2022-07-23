@@ -1,11 +1,22 @@
 package love.marblegate.boomood.misc;
 
 import com.google.common.collect.HashMultimap;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.JsonOps;
 import love.marblegate.boomood.config.Configuration;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.Rotations;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -13,7 +24,6 @@ import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -24,6 +34,46 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MiscUtils {
+    public static Codec<ItemStack> ITEMSTACK_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic -> {
+        var json = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
+        Item item;
+        if(json.has("id"))
+            item = Registry.ITEM.byNameCodec().parse(JsonOps.INSTANCE,json.getAsJsonPrimitive("id")).getOrThrow(false, err->{
+                throw new JsonSyntaxException(err);
+            });
+        else return DataResult.error("id field is missing! Json representing ItemStack must has a id field which has a Resourcelocation of Item in it.");
+        var ret = new ItemStack(item);
+        var count = 1;
+        if(json.has("Count")){
+            try{
+                count = json.getAsJsonPrimitive("Count").getAsInt();
+                if(ret.getMaxStackSize()<count && count<1)
+                    return DataResult.error("count field is invalid! Given item cannot be stacked to this amount in single ItemStack!");
+                else ret.setCount(count);
+            } catch(NumberFormatException | ClassCastException e){
+                throw new JsonSyntaxException("Count field is invalid! it must be a integer!");
+            }
+        }
+        CompoundTag tag;
+        if(json.has("tag")) {
+            try {
+                tag = TagParser.parseTag(json.getAsJsonPrimitive("tag").getAsString());
+                ret.setTag(tag);
+            } catch (CommandSyntaxException e) {
+                throw new JsonSyntaxException("tag field is invalid! it cannot be parsed into nbt!");
+            } catch(ClassCastException e){
+                throw new JsonSyntaxException("tag field is invalid! it must be a String!");
+            }
+        }
+        return DataResult.success(ret);
+    },itemStack -> {
+        var ret = new JsonObject();
+        ret.addProperty("id",itemStack.getItem().getRegistryName().toString());
+        ret.addProperty("Count",itemStack.getCount());
+        ret.addProperty("Count",itemStack.getTag().getAsString());
+        return new Dynamic<>(JsonOps.INSTANCE,ret);
+    });
+
     public static BlockPos findLookAt(Player player) {
         HitResult hitResult = player.pick(128.0D, 0.0F, false);
         return ((BlockHitResult) hitResult).getBlockPos();
@@ -133,7 +183,7 @@ public class MiscUtils {
                 if(Configuration.Common.AREA_SHAPE.get().isSphere())
                     blockPosList = blockPosList.stream().filter(pos -> isWithinReversionArea(blockPos,pos)).toList();
             } else {
-                // TODO fix remedy range chest wont fix
+                // TODO fix remedy range chest wont be filled
                 blockPosList = createShuffledBlockPosList(createRemedyScanningArea(level,blockPos));
                 if(Configuration.Common.AREA_SHAPE.get().isSphere())
                     blockPosList = blockPosList.stream().filter(pos -> isWithinReversionArea(blockPos,pos,2)).toList();

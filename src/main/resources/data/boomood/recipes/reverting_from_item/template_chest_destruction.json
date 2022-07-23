@@ -9,11 +9,22 @@
     {
       "detail": {
         "type":"chest_destruction",
-        "itemstack": {
-          "id": "minecraft:enchanted_book",
-          "Count": 64,
-          "tag": "{\"StoredEnchantments\": [{\"id\": \"minecraft:luck_of_the_sea\", \"lvl\": 3}]}"
-        }
+        "itemstacks": [
+          {
+            "id": "minecraft:enchanted_book",
+            "Count": 1,
+            "tag": "{\"StoredEnchantments\": [{\"id\": \"minecraft:luck_of_the_sea\", \"lvl\": 3s}]}"
+          },
+          {
+            "id": "minecraft:enchanted_book",
+            "Count": 1,
+            "tag": "{\"StoredEnchantments\": [{\"id\": \"minecraft:mending\", \"lvl\": 1s}]}"
+          },
+          {
+            "id": "minecraft:book",
+            "Count": 2
+          }
+        ]
       },
       "weight": 50
     },

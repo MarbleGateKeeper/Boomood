@@ -46,8 +46,8 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
                     boxes.add(IngredientBox.CODEC.parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
                         throw new JsonSyntaxException(err);
                     }));
-                } catch(Exception e) {
-                    throw new JsonSyntaxException("\"cause\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent an ingredient. " + e);
+                } catch(ClassCastException e) {
+                    throw new JsonSyntaxException("\"cause\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent an ingredient.");
                 }
 
             } else if (json.has("causes")) {
@@ -55,8 +55,8 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
                     var j = json.getAsJsonArray("causes");
                     boxes = IngredientBox.CODEC.listOf().parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
                         throw new JsonSyntaxException(err);});
-                } catch(Exception e) {
-                    throw new JsonSyntaxException("\"causes\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent ingredients. " + e);
+                } catch(ClassCastException e) {
+                    throw new JsonSyntaxException("\"causes\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent ingredients.");
                 }
             } else {
                 return DataResult.error("Recipe json must have either cause or causes.");
@@ -69,8 +69,8 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
                     situations.add(ItemStackRevertPredicate.CODEC.parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
                         throw new JsonSyntaxException(err);
                     }));
-                } catch(Exception e) {
-                    throw new JsonSyntaxException("\"situation\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent a situation."  + e);
+                } catch(ClassCastException e) {
+                    throw new JsonSyntaxException("\"situation\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent a situation.");
                 }
             } else if (json.has("situations")) {
                 try{
@@ -78,8 +78,8 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
                     situations = ItemStackRevertPredicate.CODEC.listOf().parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
                         throw new JsonSyntaxException(err);
                     });
-                } catch(Exception e) {
-                    throw new JsonSyntaxException("\"situations\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent situations."  + e);
+                } catch(ClassCastException e) {
+                    throw new JsonSyntaxException("\"situations\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent situations.");
                 }
 
             } else {

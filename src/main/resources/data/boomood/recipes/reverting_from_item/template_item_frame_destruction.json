@@ -9,11 +9,18 @@
     {
       "detail": {
         "type":"item_frame_destruction",
-        "itemstack": {
-          "id": "minecraft:firework_star",
-          "Count": 1,
-          "tag": "{\"Explosion\": {\"Colors\": [11743532], \"Type\": 2b}}"
-        }
+        "itemstacks": [
+          {
+            "id": "minecraft:firework_star",
+            "Count": 1,
+            "tag": "{\"Explosion\": {\"Colors\": [I;11743532], \"Type\": 2b}}"
+          },
+          {
+            "id": "minecraft:firework_star",
+            "Count": 1,
+            "tag": "{\"Explosion\": {\"Colors\": [I;2437522], \"Type\": 2b}}"
+          }
+        ]
       },
       "weight": 50
     },

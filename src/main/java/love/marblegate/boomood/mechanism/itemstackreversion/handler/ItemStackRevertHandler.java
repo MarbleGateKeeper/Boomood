@@ -1,5 +1,6 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.handler;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import net.minecraft.core.BlockPos;
@@ -15,8 +16,8 @@ public abstract class ItemStackRevertHandler {
         return new ArmorStandDestructionHandler();
     }
 
-    public static ItemStackRevertHandler createDefaultHandler(ItemStack itemStack) {
-        return new ChestDestructionHandler(itemStack);
+    public static ItemStackRevertHandler createDefaultHandler() {
+        return new ChestDestructionHandler();
     }
 
     public abstract void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator);

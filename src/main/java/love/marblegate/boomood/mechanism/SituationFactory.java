@@ -84,7 +84,7 @@ public class SituationFactory {
         var commonConsumed = items.stream().filter(itemStack -> !(itemStack.getItem() instanceof ArmorItem)).toList();
         if (!commonConsumed.isEmpty()){
             for(var item:commonConsumed){
-                destinationList.add(ItemStackDropSituation.create(ItemStackRevertHandler.createDefaultHandler(item), Lists.newArrayList(item)));
+                destinationList.add(ItemStackDropSituation.create(ItemStackRevertHandler.createDefaultHandler(), Lists.newArrayList(item)));
             }
         }
     }

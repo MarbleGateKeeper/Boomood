@@ -9,38 +9,48 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraftforge.items.CapabilityItemHandler;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class ChestDestructionHandler extends ItemStackRevertHandler {
     // TODO fix: it seems like itemstack info does not be correctly parsed
-    private final ItemStack target;
+    private final List<ItemStack> targets;
 
     public ChestDestructionHandler(JsonObject jsonObject) {
         if (jsonObject.has("itemstack")) {
-            var itemStackJson = GsonHelper.getAsJsonObject(jsonObject, "itemstack");
-            var itemStackResult = ItemStack.CODEC.parse(JsonOps.INSTANCE, itemStackJson);
-            target = itemStackResult.getOrThrow(false, err -> {
-                throw new JsonSyntaxException("Invalid itemstack: " + itemStackJson + ".Error: " + err);
-            });
-        } else target = null;
+            try{
+                var itemStackJson = GsonHelper.getAsJsonObject(jsonObject, "itemstack");
+                var itemStackResult = MiscUtils.ITEMSTACK_CODEC.parse(JsonOps.INSTANCE, itemStackJson);
+                targets = List.of(itemStackResult.getOrThrow(false, err -> {
+                    throw new JsonSyntaxException("Invalid itemstack: " + itemStackJson + ". Error: " + err);
+                }));
+            }catch(ClassCastException e){
+                throw new JsonSyntaxException("\"itemstack\" in recipe json must be a JsonObject to represent a itemstack.");
+            }
+        } else if (jsonObject.has("itemstacks")) {
+            try{
+                var itemStackJson = GsonHelper.getAsJsonArray(jsonObject, "itemstacks");
+                var itemStackResult = MiscUtils.ITEMSTACK_CODEC.listOf().parse(JsonOps.INSTANCE, itemStackJson);
+                targets = itemStackResult.getOrThrow(false, err -> {
+                    throw new JsonSyntaxException("Invalid itemstacks: " + itemStackJson + ". Error: " + err);
+                });
+            }catch(ClassCastException e){
+                throw new JsonSyntaxException("\"itemstacks\" in recipe json must be a JsonArray to represent itemstacks.");
+            }
+        } else targets = null;
     }
 
-    public ChestDestructionHandler(ItemStack target) {
-        this.target = target;
+    public ChestDestructionHandler() {
+        this.targets = null;
     }
 
     @Override
     public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
-        var insertItemStack = target == null ? itemStacks.get(0) : target;
-        // TODO in recipe json, itemstack can be extended to array
-        MiscUtils.insertIntoChestOrCreateChest(level, blockPos, insertItemStack);
+        var insertItemStacks = targets == null ? List.of(itemStacks.get(0)) : targets;
+        for(var itemStack:insertItemStacks){
+            MiscUtils.insertIntoChestOrCreateChest(level, blockPos, itemStack.copy());
+        }
         // TODO add custom particle effect for indication & add implement explosion particle
     }
 
@@ -54,8 +64,11 @@ public class ChestDestructionHandler extends ItemStackRevertHandler {
     public JsonObject toJson() {
         var ret = new JsonObject();
         ret.addProperty("type", "chest_destruction");
-        if (target != null) {
-            ret.add("itemstack", ItemStack.CODEC.encodeStart(JsonOps.INSTANCE, target).get().left().get());
+        if (targets != null) {
+            if(targets.size()==1)
+                ret.add("itemstack", MiscUtils.ITEMSTACK_CODEC.encodeStart(JsonOps.INSTANCE, targets.get(0)).get().left().get());
+            else
+                ret.add("itemstacks", MiscUtils.ITEMSTACK_CODEC.listOf().encodeStart(JsonOps.INSTANCE, targets).get().left().get());
         }
         return ret;
     }
@@ -68,6 +81,6 @@ public class ChestDestructionHandler extends ItemStackRevertHandler {
 
     @Override
     public String toString() {
-        return "ChestDestructionHandler{" + "target=" + target + '}';
+        return "ChestDestructionHandler{" + "target=" + targets + '}';
     }
 }
