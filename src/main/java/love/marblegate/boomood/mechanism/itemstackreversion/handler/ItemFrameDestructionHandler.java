@@ -43,6 +43,7 @@ public class ItemFrameDestructionHandler extends ItemStackRevertHandler {
 
     @Override
     public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
+        // TODO need fix: will item frame spawn inside block
         var isGlowItemFrame = Math.random() < Configuration.ItemStackReversion.GLOW_ITEM_FRAME_POSSIBILITY.get();
         var blockPosList = MiscUtils.createShuffledBlockPosList(MiscUtils.createScanningArea(blockPos));
         ItemFrame itemFrame;

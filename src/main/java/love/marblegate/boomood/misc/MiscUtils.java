@@ -46,6 +46,7 @@ public class MiscUtils {
     }
 
     public static Optional<BlockPos> randomizeDestination(Level level, BlockPos blockPos){
+        // TODO algorithm still need to be redesign. all space need to be fixed first? Maybe?
         var random = new Random();
         var radius = Configuration.Common.RADIUS.get();
         var tryTime = 0;
@@ -66,11 +67,13 @@ public class MiscUtils {
                 if(Configuration.Common.REMEDY_TYPE.get().goUpward()){
                     if(destination.getY()>=level.getMaxBuildHeight()){
                         destination = blockPos.east((int) Math.round(radius * random.nextGaussian(0,0.334))).south((int) Math.round(radius * random.nextGaussian(0,0.334)));
+                        tryTime ++;
                         continue;
                     }
                 } else {
                     if(!isWithinReversionArea(destination,blockPos,2)){
                         destination = blockPos.east((int) Math.round(radius * 2 * random.nextGaussian(0,0.334))).south((int) Math.round(radius * 2 * random.nextGaussian(0,0.334)));
+                        tryTime ++;
                         continue;
                     }
                 }
@@ -90,7 +93,10 @@ public class MiscUtils {
     public static List<BlockPos> createShuffledBlockPosList(AABB aabb){
         var ret = new ArrayList<BlockPos>();
         HashMultimap<Integer,BlockPos> map = HashMultimap.create();
-        BlockPos.betweenClosedStream(aabb).forEach(blockPos -> map.put(blockPos.getY(), blockPos));
+        BlockPos.betweenClosedStream(aabb).forEach(blockPos -> {
+            var pos = new BlockPos(blockPos);
+            map.put(pos.getY(), pos);
+        });
         map.keySet().forEach(key->{
             var temp = Lists.newArrayList(map.get(key).iterator());
             Collections.shuffle(temp);
@@ -125,11 +131,12 @@ public class MiscUtils {
             if(tryTime==0){
                 blockPosList = createShuffledBlockPosList(createScanningArea(blockPos));
                 if(Configuration.Common.AREA_SHAPE.get().isSphere())
-                    blockPosList = blockPosList.stream().filter(blockPos1 -> isWithinReversionArea(blockPos,blockPos1)).toList();
+                    blockPosList = blockPosList.stream().filter(pos -> isWithinReversionArea(blockPos,pos)).toList();
             } else {
+                // TODO fix remedy range chest wont fix
                 blockPosList = createShuffledBlockPosList(createRemedyScanningArea(level,blockPos));
                 if(Configuration.Common.AREA_SHAPE.get().isSphere())
-                    blockPosList = blockPosList.stream().filter(blockPos1 -> isWithinReversionArea(blockPos,blockPos1,2)).toList();
+                    blockPosList = blockPosList.stream().filter(pos -> isWithinReversionArea(blockPos,pos,2)).toList();
             }
             for(var bp: blockPosList){
                 if(level.getBlockState(bp).is(Blocks.CHEST)){

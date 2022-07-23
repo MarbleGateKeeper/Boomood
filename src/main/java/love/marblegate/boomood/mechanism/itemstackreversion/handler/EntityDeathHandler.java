@@ -52,4 +52,9 @@ public class EntityDeathHandler extends ItemStackRevertHandler {
         ret.addProperty("entity", entityType.getRegistryName().toString());
         return ret;
     }
+
+    @Override
+    public String toString() {
+        return "EntityDeathHandler{" + "entityType=" + entityType + '}';
+    }
 }

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Random;
 
 public class ChestDestructionHandler extends ItemStackRevertHandler {
+    // TODO fix: it seems like itemstack info does not be correctly parsed
     private final ItemStack target;
 
     public ChestDestructionHandler(JsonObject jsonObject) {
@@ -26,7 +27,7 @@ public class ChestDestructionHandler extends ItemStackRevertHandler {
             var itemStackJson = GsonHelper.getAsJsonObject(jsonObject, "itemstack");
             var itemStackResult = ItemStack.CODEC.parse(JsonOps.INSTANCE, itemStackJson);
             target = itemStackResult.getOrThrow(false, err -> {
-                throw new JsonSyntaxException("Invalid itemstack nbt: " + itemStackJson + ".Error: " + err);
+                throw new JsonSyntaxException("Invalid itemstack: " + itemStackJson + ".Error: " + err);
             });
         } else target = null;
     }
@@ -38,7 +39,7 @@ public class ChestDestructionHandler extends ItemStackRevertHandler {
     @Override
     public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
         var insertItemStack = target == null ? itemStacks.get(0) : target;
-        // TODO in recipe json, itemstack can be extended into itemstacks
+        // TODO in recipe json, itemstack can be extended to array
         MiscUtils.insertIntoChestOrCreateChest(level, blockPos, insertItemStack);
         // TODO add custom particle effect for indication & add implement explosion particle
     }
@@ -63,5 +64,10 @@ public class ChestDestructionHandler extends ItemStackRevertHandler {
     public List<List<ItemStack>> mergeItemStack(List<List<ItemStack>> itemStackListList) {
         // No need to merge
         return itemStackListList;
+    }
+
+    @Override
+    public String toString() {
+        return "ChestDestructionHandler{" + "target=" + target + '}';
     }
 }

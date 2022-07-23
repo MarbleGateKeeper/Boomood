@@ -21,7 +21,7 @@ import java.util.List;
 
 public class BlockDestructionHandler extends ItemStackRevertHandler {
 
-    public record BlockInfo(BlockState blockState,CompoundTag tags,int count){
+    public record BlockInfo(BlockState blockState, CompoundTag tags, int count){
         @Override
         public BlockState blockState() {
             return blockState;
@@ -98,5 +98,10 @@ public class BlockDestructionHandler extends ItemStackRevertHandler {
         // For reverting block destruction, how itemStack arrangement is preprocessed is irrelevant.
         // So just return what is passed in.
         return itemStackListList;
+    }
+
+    @Override
+    public String toString() {
+        return "BlockDestructionHandler{" + "blockInfos=" + blockInfos + '}';
     }
 }
