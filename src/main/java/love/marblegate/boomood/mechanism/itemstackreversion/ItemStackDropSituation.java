@@ -1,9 +1,9 @@
-package love.marblegate.boomood.mechanism.itemstackrevert;
+package love.marblegate.boomood.mechanism.itemstackreversion;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import love.marblegate.boomood.mechanism.Situation;
-import love.marblegate.boomood.mechanism.itemstackrevert.handler.ItemStackRevertHandler;
+import love.marblegate.boomood.mechanism.itemstackreversion.handler.ItemStackRevertHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;

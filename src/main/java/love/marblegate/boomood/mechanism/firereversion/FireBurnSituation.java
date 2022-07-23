@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.firerevert;
+package love.marblegate.boomood.mechanism.firereversion;
 
 import love.marblegate.boomood.mechanism.Situation;
 import love.marblegate.boomood.misc.ServerUtils;

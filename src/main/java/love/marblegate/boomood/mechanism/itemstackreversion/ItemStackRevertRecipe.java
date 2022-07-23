@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.itemstackrevert;
+package love.marblegate.boomood.mechanism.itemstackreversion;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -6,7 +6,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
-import love.marblegate.boomood.mechanism.itemstackrevert.handler.ItemStackRevertHandler;
+import love.marblegate.boomood.mechanism.itemstackreversion.handler.ItemStackRevertHandler;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -47,16 +47,16 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
                         throw new JsonSyntaxException(err);
                     }));
                 } catch(Exception e) {
-                    throw new JsonSyntaxException("\"cause\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent an ingredient.");
+                    throw new JsonSyntaxException("\"cause\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent an ingredient. " + e);
                 }
 
             } else if (json.has("causes")) {
                 try{
-                    var j = json.getAsJsonObject("causes");
+                    var j = json.getAsJsonArray("causes");
                     boxes = IngredientBox.CODEC.listOf().parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
                         throw new JsonSyntaxException(err);});
                 } catch(Exception e) {
-                    throw new JsonSyntaxException("\"causes\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent ingredients.");
+                    throw new JsonSyntaxException("\"causes\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent ingredients. " + e);
                 }
             } else {
                 return DataResult.error("Recipe json must have either cause or causes.");
@@ -70,7 +70,7 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
                         throw new JsonSyntaxException(err);
                     }));
                 } catch(Exception e) {
-                    throw new JsonSyntaxException("\"situation\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent a situation.");
+                    throw new JsonSyntaxException("\"situation\" in recipe json id"+ resourceLocation +" must be a JsonObject to represent a situation."  + e);
                 }
             } else if (json.has("situations")) {
                 try{
@@ -79,7 +79,7 @@ public class ItemStackRevertRecipe implements Recipe<Container> {
                         throw new JsonSyntaxException(err);
                     });
                 } catch(Exception e) {
-                    throw new JsonSyntaxException("\"situations\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent situations.");
+                    throw new JsonSyntaxException("\"situations\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent situations."  + e);
                 }
 
             } else {

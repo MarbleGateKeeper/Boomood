@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.fluidrevert;
+package love.marblegate.boomood.mechanism.fluidreversion;
 
 import love.marblegate.boomood.mechanism.Situation;
 import love.marblegate.boomood.misc.ServerUtils;

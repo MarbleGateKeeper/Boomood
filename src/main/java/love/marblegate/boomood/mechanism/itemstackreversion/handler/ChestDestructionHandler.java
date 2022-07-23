@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.itemstackrevert.handler;
+package love.marblegate.boomood.mechanism.itemstackreversion.handler;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -38,22 +38,8 @@ public class ChestDestructionHandler extends ItemStackRevertHandler {
     @Override
     public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
         var insertItemStack = target == null ? itemStacks.get(0) : target;
-        insertItemStack = MiscUtils.searchValidChestAndInsert(level, blockPos, insertItemStack);
-        if (!insertItemStack.isEmpty()) {
-            var optional = MiscUtils.randomizeDestination(level, blockPos);
-            if (optional.isEmpty()) return;
-            var destination = optional.get();
-            var facings = ChestBlock.FACING.getAllValues().toList().stream().map(Property.Value::value).toList();
-            level.setBlockAndUpdate(destination, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, facings.get(new Random().nextInt(facings.size()))));
-            BlockEntity chestBlockEntity = level.getBlockEntity(destination);
-            var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-            if (itemhandler.isPresent()) {
-                ItemStack finalInsertItemStack = insertItemStack;
-                itemhandler.ifPresent(cap -> {
-                    cap.insertItem(0, finalInsertItemStack, false);
-                });
-            }
-        }
+        // TODO in recipe json, itemstack can be extended into itemstacks
+        MiscUtils.insertIntoChestOrCreateChest(level, blockPos, insertItemStack);
         // TODO add custom particle effect for indication & add implement explosion particle
     }
 

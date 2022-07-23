@@ -1,6 +1,6 @@
 package love.marblegate.boomood.registry;
 
-import love.marblegate.boomood.mechanism.itemstackrevert.ItemStackRevertRecipe;
+import love.marblegate.boomood.mechanism.itemstackreversion.ItemStackRevertRecipe;
 import net.minecraft.core.Registry;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;

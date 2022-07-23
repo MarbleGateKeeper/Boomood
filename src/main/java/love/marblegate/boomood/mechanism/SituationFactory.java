@@ -1,11 +1,11 @@
 package love.marblegate.boomood.mechanism;
 
 import com.google.common.collect.Lists;
-import love.marblegate.boomood.mechanism.firerevert.FireBurnSituation;
-import love.marblegate.boomood.mechanism.fluidrevert.FluidFlowSituation;
-import love.marblegate.boomood.mechanism.itemstackrevert.ItemStackDropSituation;
-import love.marblegate.boomood.mechanism.itemstackrevert.handler.ItemStackRevertHandler;
-import love.marblegate.boomood.mechanism.itemstackrevert.ItemStackRevertRecipe;
+import love.marblegate.boomood.mechanism.firereversion.FireBurnSituation;
+import love.marblegate.boomood.mechanism.fluidreversion.FluidFlowSituation;
+import love.marblegate.boomood.mechanism.itemstackreversion.ItemStackDropSituation;
+import love.marblegate.boomood.mechanism.itemstackreversion.handler.ItemStackRevertHandler;
+import love.marblegate.boomood.mechanism.itemstackreversion.ItemStackRevertRecipe;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.SimpleContainer;

@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.itemstackrevert.handler;
+package love.marblegate.boomood.mechanism.itemstackreversion.handler;
 
 import com.google.gson.JsonObject;
 import love.marblegate.boomood.config.Configuration;
@@ -35,7 +35,7 @@ public class ArmorStandDestructionHandler extends ItemStackRevertHandler {
         AABB aabb = EntityType.ARMOR_STAND.getDimensions().makeBoundingBox(vec3.x(), vec3.y(), vec3.z());
         if (level.noCollision((Entity) null, aabb) && level.getEntities((Entity) null, aabb).isEmpty()) {
             ArmorStand armorStand = new ArmorStand(level, vec3.x, vec3.y, vec3.z);
-            if (Configuration.NOISOLPXE_ARMOR_STAND_POSE_RANDOMIZE.get()) {
+            if (Configuration.ItemStackReversion.ARMOR_STAND_POSE_RANDOMIZE.get()) {
                 armorStand.moveTo(armorStand.getX(), armorStand.getY(), armorStand.getZ(), (float) (Math.random() * 360), 0.0F);
                 MiscUtils.randomizeArmorStandPose(armorStand);
             }
@@ -44,13 +44,18 @@ public class ArmorStandDestructionHandler extends ItemStackRevertHandler {
                 armorStand.setItemSlot(equipmentslot, itemStack);
             }
             level.addFreshEntity(armorStand);
+        } else {
+            for(var itemStack:itemStacks){
+                MiscUtils.insertIntoChestOrCreateChest(level,blockPos,itemStack);
+            }
         }
         // TODO add custom particle effect for indication & add implement explosion particle
     }
 
+
     @Override
     public int priority() {
-        return 30;
+        return 40;
     }
 
     @Override

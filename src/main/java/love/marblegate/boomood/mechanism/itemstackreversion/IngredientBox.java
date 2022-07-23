@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.itemstackrevert;
+package love.marblegate.boomood.mechanism.itemstackreversion;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;

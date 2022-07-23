@@ -1,4 +1,4 @@
-package love.marblegate.boomood.mechanism.itemstackrevert.handler;
+package love.marblegate.boomood.mechanism.itemstackreversion.handler;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
@@ -43,8 +43,8 @@ public class ItemFrameDestructionHandler extends ItemStackRevertHandler {
 
     @Override
     public void revert(Level level, BlockPos blockPos, List<ItemStack> itemStacks, Player manipulator) {
-        var isGlowItemFrame = Math.random() < Configuration.NOISOLPXE_GLOW_ITEM_FRAME_POSSIBILITY.get();
-        var blockPosList = MiscUtils.createBottomToTopBlockPosList(MiscUtils.createScanningArea(blockPos));
+        var isGlowItemFrame = Math.random() < Configuration.ItemStackReversion.GLOW_ITEM_FRAME_POSSIBILITY.get();
+        var blockPosList = MiscUtils.createShuffledBlockPosList(MiscUtils.createScanningArea(blockPos));
         ItemFrame itemFrame;
         var displayItemStack = target == null ? itemStacks.get(0) : target;
         for (var bp : blockPosList) {
@@ -62,7 +62,7 @@ public class ItemFrameDestructionHandler extends ItemStackRevertHandler {
             if (displayItemStack.isEmpty()) break;
         }
         if (!displayItemStack.isEmpty()) {
-            if (Configuration.NOISOLPXE_ITEM_FRAME_SITUATION_REMEDY_IS_SUPPORT_BLOCK.get()) {
+            if (Configuration.ItemStackReversion.ITEM_FRAME_SITUATION_REMEDY_IS_SUPPORT_BLOCK.get()) {
                 var tryTime = 0;
                 while (tryTime < 3) {
                     var optional = MiscUtils.randomizeDestination(level, blockPos);
@@ -82,7 +82,7 @@ public class ItemFrameDestructionHandler extends ItemStackRevertHandler {
                     }
                 }
             } else {
-                tryPutIntoChest(level, blockPos, displayItemStack);
+                MiscUtils.insertIntoChestOrCreateChest(level, blockPos, displayItemStack);
             }
         }
     }
@@ -97,27 +97,9 @@ public class ItemFrameDestructionHandler extends ItemStackRevertHandler {
         return Optional.empty();
     }
 
-    private void tryPutIntoChest(Level level, BlockPos blockPos, ItemStack itemStack) {
-        itemStack = MiscUtils.searchValidChestAndInsert(level, blockPos, itemStack);
-        if (!itemStack.isEmpty()) {
-            var optional = MiscUtils.randomizeDestination(level, blockPos);
-            if (optional.isEmpty()) return;
-            var destination = optional.get();
-            var facings = ChestBlock.FACING.getAllValues().toList().stream().map(Property.Value::value).toList();
-            level.setBlockAndUpdate(destination, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, facings.get(new Random().nextInt(facings.size()))));
-            BlockEntity chestBlockEntity = level.getBlockEntity(destination);
-            var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-            if (itemhandler.isPresent()) {
-                ItemStack finalItemStack = itemStack;
-                itemhandler.ifPresent(cap -> cap.insertItem(0, finalItemStack, false));
-            }
-            // TODO add custom particle effect for indication & add implement explosion particle
-        }
-    }
-
     @Override
     public int priority() {
-        return 40;
+        return 30;
     }
 
     @Override
