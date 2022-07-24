@@ -1,10 +1,11 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
+import love.marblegate.boomood.Boomood;
 import love.marblegate.boomood.config.Configuration;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.ChestDestructionSituationResult;
-import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.ResultPack;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
 import love.marblegate.boomood.misc.MiscUtils;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -20,7 +21,7 @@ public class ChestDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void add(ResultPack pack) {
+    public void add(IntermediateResultHolder pack) {
         var result = (ChestDestructionSituationResult) pack.result();
         if(result.getTargets()==null)
             targets.addAll(pack.items());
@@ -29,12 +30,10 @@ public class ChestDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void revert(Player manipulator, BlockPos blockPos) {
-        if(Configuration.DEBUG_MODE.get()){
-            System.out.println("Reverting ItemFrameDestruction. Details: " + this);
-        }
+    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
+        Boomood.LOGGER.debug("Reverting ChestDestruction. Details: " + this);
         for (var itemStack : targets) {
-            MiscUtils.insertIntoChestOrCreateChest(manipulator.level, blockPos, itemStack.copy());
+            MiscUtils.insertIntoChestOrCreateChest(manipulator.level, blockPosHolder, itemStack.copy());
         }
         // TODO add custom particle effect for indication & add implement explosion particle
     }

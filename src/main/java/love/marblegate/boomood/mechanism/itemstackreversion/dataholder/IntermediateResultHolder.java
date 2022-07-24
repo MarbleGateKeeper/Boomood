@@ -5,10 +5,11 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-public record ResultPack(ReversionSituationResult result, List<ItemStack> items) {
+public record IntermediateResultHolder(ReversionSituationResult result, List<ItemStack> items) {
+
     @Override
     public String toString() {
-        return "ResultPack{" +
+        return "IntermediateResultHolder{" +
                 "result=" + result +
                 ", items=" + items +
                 '}';

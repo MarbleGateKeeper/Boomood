@@ -1,8 +1,10 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
+import love.marblegate.boomood.Boomood;
 import love.marblegate.boomood.config.Configuration;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.ItemFrameDestructionSituationResult;
-import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.ResultPack;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
 import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -27,7 +29,7 @@ public class ItemFrameDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void add(ResultPack pack) {
+    public void add(IntermediateResultHolder pack) {
         var result = (ItemFrameDestructionSituationResult) pack.result();
         if(result.getTargets()==null)
             targets.addAll(pack.items());
@@ -36,54 +38,48 @@ public class ItemFrameDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void revert(Player manipulator, BlockPos blockPos) {
-        if(Configuration.DEBUG_MODE.get()){
-            System.out.println("Reverting ItemFrameDestruction. Details: " + this);
-        }
+    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
+        Boomood.LOGGER.debug("Reverting ItemFrameDestruction. Details: " + this);
         // TODO need fix: will item frame spawn inside block
         var isGlowItemFrame = Math.random() < Configuration.ItemStackReversion.GLOW_ITEM_FRAME_POSSIBILITY.get();
         var level = manipulator.level;
-        var blockPosList = MiscUtils.createShuffledBlockPosList(MiscUtils.createScanningArea(blockPos));
         ItemFrame itemFrame;
         for(var itemStack:targets){
             var is = itemStack.copy();
-            for (var bp : blockPosList) {
-                for (var direction : Direction.values()) {
-                    if (isGlowItemFrame) itemFrame = new GlowItemFrame(level, bp, direction);
-                    else itemFrame = new ItemFrame(level, bp, direction);
-                    if (itemFrame.survives()) {
-                        itemFrame.setItem(is.copy());
-                        level.addFreshEntity(itemFrame);
-                        is = ItemStack.EMPTY;
-                        // TODO add custom particle effect for indication & add implement explosion particle
-                        break;
-                    }
+            var optional = blockPosHolder.next();
+            if (optional.isEmpty()) return;
+            var destination = optional.get();
+            for (var direction : Direction.values()) {
+                if (isGlowItemFrame) itemFrame = new GlowItemFrame(level, destination, direction);
+                else itemFrame = new ItemFrame(level, destination, direction);
+                if (itemFrame.survives()) {
+                    itemFrame.setItem(is.copy());
+                    level.addFreshEntity(itemFrame);
+                    is = ItemStack.EMPTY;
+                    // TODO add custom particle effect for indication & add implement explosion particle
+                    break;
                 }
-                if (is.isEmpty()) break;
+            }
+            if (is.isEmpty()) continue;
+            var tryTime = 0;
+            while (tryTime < 3) {
+                optional = blockPosHolder.next();
+                if (optional.isEmpty()) return;
+                destination = optional.get();
+                var od = getEmptyNeighborDirection(level, destination);
+                if (od.isEmpty()) {
+                    tryTime++;
+                } else {
+                    level.setBlockAndUpdate(destination.relative(od.get()), MiscUtils.getSupportBlock(level, destination.relative(od.get())));
+                    if (isGlowItemFrame) itemFrame = new GlowItemFrame(level, destination, od.get().getOpposite());
+                    else itemFrame = new ItemFrame(level, destination, od.get().getOpposite());
+                    itemFrame.setItem(is);
+                    level.addFreshEntity(itemFrame);
+                    // TODO add custom particle effect for indication & add implement explosion particle
+                }
             }
             if (!is.isEmpty()) {
-                if (Configuration.ItemStackReversion.ITEM_FRAME_SITUATION_REMEDY_IS_SUPPORT_BLOCK.get()) {
-                    var tryTime = 0;
-                    while (tryTime < 3) {
-                        var optional = MiscUtils.randomizeDestination(level, blockPos);
-                        if (optional.isEmpty()) return;
-                        var destination = optional.get();
-                        var od = getEmptyNeighborDirection(level, destination);
-                        if (od.isEmpty()) {
-                            tryTime++;
-                        } else {
-                            level.setBlockAndUpdate(destination.relative(od.get()), MiscUtils.getSupportBlock(level, destination.relative(od.get())));
-                            if (isGlowItemFrame) itemFrame = new GlowItemFrame(level, destination, od.get().getOpposite());
-                            else itemFrame = new ItemFrame(level, destination, od.get().getOpposite());
-                            itemFrame.setItem(is);
-                            level.addFreshEntity(itemFrame);
-                            // TODO add custom particle effect for indication & add implement explosion particle
-                            break;
-                        }
-                    }
-                } else {
-                    MiscUtils.insertIntoChestOrCreateChest(level, blockPos, is);
-                }
+                MiscUtils.insertIntoChestOrCreateChest(level, blockPosHolder, is);
             }
         }
     }

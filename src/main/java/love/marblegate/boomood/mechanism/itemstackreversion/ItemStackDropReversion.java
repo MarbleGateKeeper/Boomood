@@ -1,10 +1,11 @@
 package love.marblegate.boomood.mechanism.itemstackreversion;
 
 import com.google.common.collect.Lists;
-import love.marblegate.boomood.config.Configuration;
+import love.marblegate.boomood.Boomood;
 import love.marblegate.boomood.mechanism.Reversion;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.ReversionCaseHolder;
-import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.ResultPack;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.ReversionSituationResult;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
@@ -25,12 +26,10 @@ public class ItemStackDropReversion extends Reversion {
     private final ReversionCaseHolder caseHolder;
 
     public ItemStackDropReversion(Level level, BlockPos eventCenter, AABB area) {
-        if(Configuration.DEBUG_MODE.get()){
-            System.out.println("ItemStackDropReversion is initializing at " + area + ". Reversion center is " + eventCenter);
-        }
+        Boomood.LOGGER.debug("ItemStackDropReversion is initializing at " + area + ". Reversion center is " + eventCenter);
         var itemStackEntities = level.getEntities((Entity) null, area, entity -> entity instanceof ItemEntity);
         var container = new SimpleContainer(9);
-        List<ResultPack> resultPacks = new ArrayList<>();
+        List<IntermediateResultHolder> intermediateResultHolders = new ArrayList<>();
         if (!itemStackEntities.isEmpty()) {
             for (var itemStackEntity : itemStackEntities) {
                 var item = ((ItemEntity) itemStackEntity).getItem();
@@ -53,42 +52,39 @@ public class ItemStackDropReversion extends Reversion {
                 var caseOptional = recipe.produceSituationHandler(level, eventCenter);
                 var consumedItems = recipe.consumeItemAfterProduceSituationHandler(container);
                 if (caseOptional.isEmpty()) {
-                    handleRemainingItems(consumedItems, resultPacks);
+                    handleRemainingItems(consumedItems, intermediateResultHolders);
                 } else {
-                    resultPacks.add(new ResultPack(caseOptional.get(), consumedItems));
+                    intermediateResultHolders.add(new IntermediateResultHolder(caseOptional.get(), consumedItems));
                 }
             } else {
                 var leftItems = container.removeAllItems().stream().filter(itemStack -> !itemStack.isEmpty()).toList();
-                handleRemainingItems(leftItems, resultPacks);
+                handleRemainingItems(leftItems, intermediateResultHolders);
             }
         }
         caseHolder = new ReversionCaseHolder();
-        resultPacks.forEach(resultPack -> {
-                caseHolder.add(resultPack);
-                if(Configuration.DEBUG_MODE.get()){
-                    System.out.println("ResultPack" + resultPack + "has been add into ReversionCaseHolder");
-                }
+        intermediateResultHolders.forEach(resultPack -> {
+            caseHolder.add(resultPack);
+            Boomood.LOGGER.debug("IntermediateResultHolder " + resultPack + " has been add into ReversionCaseHolder");
         });
     }
 
-    private static void handleRemainingItems(List<ItemStack> items, List<ResultPack> resultPacks) {
+    private static void handleRemainingItems(List<ItemStack> items, List<IntermediateResultHolder> intermediateResultHolders) {
         var armorConsumed = items.stream().filter(itemStack -> itemStack.getItem() instanceof ArmorItem).toList();
         if (!armorConsumed.isEmpty())
-            resultPacks.add(new ResultPack(ReversionSituationResult.createArmorHandler(), Lists.newArrayList(armorConsumed)));
+            intermediateResultHolders.add(new IntermediateResultHolder(ReversionSituationResult.createArmorHandler(), Lists.newArrayList(armorConsumed)));
         var commonConsumed = items.stream().filter(itemStack -> !(itemStack.getItem() instanceof ArmorItem)).toList();
         if (!commonConsumed.isEmpty()){
             for(var item:commonConsumed){
-                resultPacks.add(new ResultPack(ReversionSituationResult.createDefaultHandler(), Lists.newArrayList(item)));
+                intermediateResultHolders.add(new IntermediateResultHolder(ReversionSituationResult.createDefaultHandler(), Lists.newArrayList(item)));
             }
         }
     }
 
     @Override
     public void revert(Player manipulator, BlockPos blockPos) {
-        if(Configuration.DEBUG_MODE.get()){
-            System.out.println("ItemStackDropReversion is in reverting progress.");
-        }
-        caseHolder.apply(blockPos, manipulator);
+        Boomood.LOGGER.debug("ItemStackDropReversion is in reverting progress.");
+        // TODO
+        caseHolder.apply(manipulator,new AvailableBlockPosHolder(manipulator.level,blockPos));
     }
 
 }

@@ -1,8 +1,9 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
+import love.marblegate.boomood.Boomood;
 import love.marblegate.boomood.config.Configuration;
-import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.ResultPack;
-import net.minecraft.core.BlockPos;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 
@@ -16,16 +17,14 @@ public class EntityDeathReversionCase implements ReversionCase {
     }
 
     @Override
-    public void add(ResultPack pack) {
-        if(Configuration.DEBUG_MODE.get()){
-            // TODO need to String
-            System.out.println("Reverting ItemFrameDestruction. Details: " + this);
-        }
+    public void add(IntermediateResultHolder pack) {
+        // TODO need to String
+        Boomood.LOGGER.debug("Reverting EntityDeath. Details: " + this);
         // TODO
     }
 
     @Override
-    public void revert(Player manipulator, BlockPos blockPos) {
+    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
         // TODO
     }
 }

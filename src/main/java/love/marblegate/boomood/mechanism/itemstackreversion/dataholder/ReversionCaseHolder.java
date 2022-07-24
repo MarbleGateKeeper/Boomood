@@ -2,7 +2,6 @@ package love.marblegate.boomood.mechanism.itemstackreversion.dataholder;
 
 import com.google.common.collect.Lists;
 import love.marblegate.boomood.mechanism.itemstackreversion.cases.*;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,16 +14,16 @@ public class ReversionCaseHolder {
         this.caseList = new HashMap<>();
     }
 
-    public void add(ResultPack pack){
-        if(!caseList.containsKey(pack.result().situationId()))
-            caseList.put(pack.result().situationId(), createCase(pack.result().situationId()));
-        caseList.get(pack.result().situationId()).add(pack);
+    public void add(IntermediateResultHolder holder){
+        if(!caseList.containsKey(holder.result().situationId()))
+            caseList.put(holder.result().situationId(), createCase(holder.result().situationId()));
+        caseList.get(holder.result().situationId()).add(holder);
     }
 
-    public void apply(BlockPos eventCenter, Player player){
+    public void apply(Player player, AvailableBlockPosHolder holder){
          var l = Lists.newArrayList(caseList.values());
          l.sort(Comparator.comparingInt(o -> -o.priority()));
-         l.forEach(reversionCase -> reversionCase.revert(player,eventCenter));
+         l.forEach(reversionCase -> reversionCase.revert(player,holder));
     }
 
     private ReversionCase createCase(String situationId){

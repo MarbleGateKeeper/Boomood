@@ -1,11 +1,12 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
+import love.marblegate.boomood.Boomood;
 import love.marblegate.boomood.config.Configuration;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.BlockInfoHolder;
-import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.ResultPack;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.BlockDestructionSituationResult;
 import love.marblegate.boomood.misc.MiscUtils;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FallingBlock;
@@ -23,19 +24,17 @@ public class BlockDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void add(ResultPack pack) {
+    public void add(IntermediateResultHolder pack) {
         blockInfos.addAll(((BlockDestructionSituationResult) pack.result()).getBlockInfoHolders());
     }
 
     @Override
-    public void revert(Player manipulator, BlockPos blockPos) {
-        if(Configuration.DEBUG_MODE.get()){
-            System.out.println("Reverting ItemFrameDestruction. Details: " + this);
-        }
+    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
+        Boomood.LOGGER.debug("Reverting BlockDestruction. Details: " + this);
         var level = manipulator.level;
         for(var blockInfo:blockInfos){
             for(int i=0;i<blockInfo.count();i++){
-                var optional = MiscUtils.randomizeDestination(level, blockPos);
+                var optional = blockPosHolder.next();
                 if (optional.isEmpty()) continue;
                 var destination = optional.get();
                 // Falling block should have support block

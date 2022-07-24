@@ -14,8 +14,8 @@ import net.minecraftforge.common.crafting.PartialNBTIngredient;
 
 import javax.annotation.Nullable;
 
-public class IngredientBox {
-    public static final Codec<IngredientBox> CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
+public class IngredientHolder {
+    public static final Codec<IngredientHolder> CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
             {
                 try {
                     var jsonObject = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
@@ -42,7 +42,7 @@ public class IngredientBox {
                     }
                     else max = min;
                     if(min>max) throw new JsonSyntaxException("max must not be less than mix! max:" + max + ". min:" + min +".");
-                    var ret = new IngredientBox(ingredient,type,min,max);
+                    var ret = new IngredientHolder(ingredient,type,min,max);
                     return DataResult.success(ret);
                 } catch (Exception e) {
                     return DataResult.error(e.getMessage());
@@ -70,7 +70,7 @@ public class IngredientBox {
     @Nullable
     private final int maxCount;
 
-    public IngredientBox(Ingredient ingredient, Type type, int minCount, int maxCount) {
+    public IngredientHolder(Ingredient ingredient, Type type, int minCount, int maxCount) {
         this.ingredient = ingredient;
         this.type = type;
         this.minCount = minCount;

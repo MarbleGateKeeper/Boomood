@@ -7,7 +7,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.ReversionSituationResult;
-import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IngredientBox;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IngredientHolder;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -39,12 +39,12 @@ public class ItemStackReversionRecipe implements Recipe<Container> {
                     throw new JsonSyntaxException(err);
                 });
             else rl = resourceLocation;
-            List<IngredientBox> boxes;
+            List<IngredientHolder> boxes;
             if(json.has("cause")){
                 boxes = new ArrayList<>();
                 try{
                     var j = json.getAsJsonObject("cause");
-                    boxes.add(IngredientBox.CODEC.parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
+                    boxes.add(IngredientHolder.CODEC.parse(JsonOps.INSTANCE,j).getOrThrow(false, err->{
                         throw new JsonSyntaxException(err);
                     }));
                 } catch(ClassCastException e) {
@@ -54,7 +54,7 @@ public class ItemStackReversionRecipe implements Recipe<Container> {
             } else if (json.has("causes")) {
                 try{
                     var j = json.getAsJsonArray("causes");
-                    boxes = IngredientBox.CODEC.listOf().parse(JsonOps.INSTANCE,j).getOrThrow(false,err->{
+                    boxes = IngredientHolder.CODEC.listOf().parse(JsonOps.INSTANCE,j).getOrThrow(false, err->{
                         throw new JsonSyntaxException(err);});
                 } catch(ClassCastException e) {
                     throw new JsonSyntaxException("\"causes\" in recipe json id"+ resourceLocation +" must be a JsonArray to represent ingredients.");
@@ -90,9 +90,9 @@ public class ItemStackReversionRecipe implements Recipe<Container> {
         },recipe->{
             var result = new JsonObject();
             result.add("id", ResourceLocation.CODEC.encodeStart(JsonOps.INSTANCE,recipe.id).getOrThrow(false, err->{}));
-            if(recipe.ingredientBoxes.size()==1)
-                result.add("cause", IngredientBox.CODEC.encodeStart(JsonOps.INSTANCE,recipe.ingredientBoxes.get(0)).getOrThrow(false, err->{}));
-            else result.add("causes", IngredientBox.CODEC.listOf().encodeStart(JsonOps.INSTANCE,recipe.ingredientBoxes).getOrThrow(false, err->{}));
+            if(recipe.ingredientHolders.size()==1)
+                result.add("cause", IngredientHolder.CODEC.encodeStart(JsonOps.INSTANCE,recipe.ingredientHolders.get(0)).getOrThrow(false, err->{}));
+            else result.add("causes", IngredientHolder.CODEC.listOf().encodeStart(JsonOps.INSTANCE,recipe.ingredientHolders).getOrThrow(false, err->{}));
             if(recipe.predicates.size()==1)
                 result.add("situation", ReversionSituation.CODEC.encodeStart(JsonOps.INSTANCE,recipe.predicates.get(0)).getOrThrow(false, err->{}));
             else result.add("situations", ReversionSituation.CODEC.listOf().encodeStart(JsonOps.INSTANCE,recipe.predicates).getOrThrow(false, err->{}));
@@ -103,20 +103,20 @@ public class ItemStackReversionRecipe implements Recipe<Container> {
 
     private final ResourceLocation id;
     private final List<ReversionSituation> predicates;
-    private final List<IngredientBox> ingredientBoxes;
+    private final List<IngredientHolder> ingredientHolders;
 
 
-    public ItemStackReversionRecipe(ResourceLocation id, List<ReversionSituation> predicates, List<IngredientBox> ingredientBoxes) {
+    public ItemStackReversionRecipe(ResourceLocation id, List<ReversionSituation> predicates, List<IngredientHolder> ingredientHolders) {
         this.id = id;
         this.predicates = predicates;
-        this.ingredientBoxes = ingredientBoxes;
+        this.ingredientHolders = ingredientHolders;
     }
 
     @Override
     public boolean matches(@NotNull Container container, @NotNull Level level) {
         for (int i = 0; i < container.getContainerSize(); i++) {
             var item = container.getItem(i);
-            for(var ingredientBox: ingredientBoxes){
+            for(var ingredientBox: ingredientHolders){
                 if (ingredientBox.test(item)) return true;
             }
         }
@@ -184,10 +184,10 @@ public class ItemStackReversionRecipe implements Recipe<Container> {
     // This method do not modify ItemStack in Container. It uses copy().
     // All consumed ItemStacks are returned.
     public List<ItemStack> consumeItemAfterProduceSituationHandler(Container container) {
-        IngredientBox matchedBox = null;
+        IngredientHolder matchedBox = null;
         for (int i = 0; i < container.getContainerSize(); i++) {
             var item = container.getItem(i);
-            for(var ingredientBox: ingredientBoxes)
+            for(var ingredientBox: ingredientHolders)
                 if (ingredientBox.test(item)) {
                     matchedBox = ingredientBox;
                     break;
@@ -223,8 +223,8 @@ public class ItemStackReversionRecipe implements Recipe<Container> {
         return predicates;
     }
 
-    public List<IngredientBox> getIngredientBoxs() {
-        return ingredientBoxes;
+    public List<IngredientHolder> getIngredientBoxs() {
+        return ingredientHolders;
     }
 
     public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<ItemStackReversionRecipe> {

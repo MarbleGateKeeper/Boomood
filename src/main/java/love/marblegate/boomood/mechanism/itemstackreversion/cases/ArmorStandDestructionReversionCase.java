@@ -1,9 +1,10 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
+import love.marblegate.boomood.Boomood;
 import love.marblegate.boomood.config.Configuration;
-import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.ResultPack;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
 import love.marblegate.boomood.misc.MiscUtils;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -12,7 +13,6 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -51,19 +51,17 @@ public class ArmorStandDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void add(ResultPack pack) {
+    public void add(IntermediateResultHolder pack) {
         itemStacks.addAll(pack.items().stream().filter(itemStack -> itemStack.getItem() instanceof ArmorItem).toList());
     }
 
     @Override
-    public void revert(Player manipulator, BlockPos blockPos) {
+    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
         var suits = arrangeIntoSuit(itemStacks);
-        if(Configuration.DEBUG_MODE.get()){
-            System.out.println("Reverting ItemFrameDestruction. Details: " + toDetailedString(suits));
-        }
+        Boomood.LOGGER.debug("Reverting ArmorStandDestruction. Details: " + toDetailedString(suits));
         var level = manipulator.level;
         for(var suit:suits){
-            var optional = MiscUtils.randomizeDestination(level, blockPos);
+            var optional = blockPosHolder.next();
             if (optional.isEmpty()) return;
             var destination = optional.get();
             // Armor stand should have support block
@@ -85,7 +83,7 @@ public class ArmorStandDestructionReversionCase implements ReversionCase {
                 level.addFreshEntity(armorStand);
             } else {
                 for(var itemStack:suit){
-                    MiscUtils.insertIntoChestOrCreateChest(level,blockPos,itemStack);
+                    MiscUtils.insertIntoChestOrCreateChest(level, blockPosHolder, itemStack);
                 }
             }
         }
