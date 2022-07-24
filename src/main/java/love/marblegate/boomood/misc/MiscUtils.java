@@ -9,6 +9,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import love.marblegate.boomood.config.Configuration;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.Rotations;
@@ -139,7 +140,7 @@ public class MiscUtils {
     }
 
     public static boolean isWithinReversionArea(BlockPos groundZero, BlockPos tested, double extendingRate){
-        return !Configuration.Common.AREA_SHAPE.get().isSphere() || groundZero.distSqr(tested) < Configuration.Common.RADIUS.get() * extendingRate;
+        return !Configuration.Common.AREA_SHAPE.get().isSphere() || Math.sqrt(groundZero.distSqr(tested)) <= Configuration.Common.RADIUS.get() * extendingRate;
     }
 
     public static List<BlockPos> createShuffledBlockPosList(AABB aabb){
@@ -157,10 +158,10 @@ public class MiscUtils {
         return ret;
     }
 
-    public static void insertIntoChestOrCreateChest(Level level, BlockPos blockPos, ItemStack insertItemStack){
-        insertItemStack = searchValidChestAndInsert(level, blockPos, insertItemStack);
+    public static void insertIntoChestOrCreateChest(Level level, AvailableBlockPosHolder blockPosHolder, ItemStack insertItemStack){
+        insertItemStack = searchValidChestAndInsert(level, blockPosHolder, insertItemStack);
         if (!insertItemStack.isEmpty()) {
-            var optional = MiscUtils.randomizeDestination(level, blockPos);
+            var optional = blockPosHolder.next();
             if (optional.isEmpty()) return;
             var destination = optional.get();
             var facings = ChestBlock.FACING.getAllValues().toList().stream().map(Property.Value::value).toList();
@@ -169,46 +170,29 @@ public class MiscUtils {
             var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
             if (itemhandler.isPresent()) {
                 ItemStack finalInsertItemStack = insertItemStack;
-                itemhandler.ifPresent(cap -> {
-                    cap.insertItem(0, finalInsertItemStack, false);
-                });
+                itemhandler.ifPresent(cap -> cap.insertItem(0, finalInsertItemStack, false));
             }
+            blockPosHolder.appendChestLocation(destination);
         }
     }
 
-    public static ItemStack searchValidChestAndInsert(Level level, BlockPos blockPos, ItemStack itemStack){
-        var tryTime = 0;
-        while(tryTime<2){
-            List<BlockPos> blockPosList;
-            if(tryTime==0){
-                blockPosList = createShuffledBlockPosList(createScanningArea(blockPos));
-                if(Configuration.Common.AREA_SHAPE.get().isSphere())
-                    blockPosList = blockPosList.stream().filter(pos -> isWithinReversionArea(blockPos,pos)).toList();
-            } else {
-                // TODO fix remedy range chest wont be filled
-                blockPosList = createShuffledBlockPosList(createRemedyScanningArea(level,blockPos));
-                if(Configuration.Common.AREA_SHAPE.get().isSphere())
-                    blockPosList = blockPosList.stream().filter(pos -> isWithinReversionArea(blockPos,pos,2)).toList();
-            }
-            for(var bp: blockPosList){
-                if(level.getBlockState(bp).is(Blocks.CHEST)){
-                    BlockEntity chestBlockEntity = level.getBlockEntity(bp);
-                    var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-                    var bi = new AtomicReference<>(itemStack);
-                    if(itemhandler.isPresent()){
-                        itemhandler.ifPresent(cap->{
-                            for(int i=0;i<cap.getSlots();i++){
-                                bi.set(cap.insertItem(i, bi.get(), false));
-                                if(bi.get().isEmpty()) break;
-                            }
-                        });
-                    }
-                    itemStack = bi.get();
+    public static ItemStack searchValidChestAndInsert(Level level, AvailableBlockPosHolder blockPosHolder, ItemStack itemStack){
+        for(var bp: blockPosHolder.chestLocations()){
+            if(level.getBlockState(bp).is(Blocks.CHEST)){
+                BlockEntity chestBlockEntity = level.getBlockEntity(bp);
+                var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+                var bi = new AtomicReference<>(itemStack.copy());
+                if(itemhandler.isPresent()){
+                    itemhandler.ifPresent(cap->{
+                        for(int i=0;i<cap.getSlots();i++){
+                            bi.set(cap.insertItem(i, bi.get(), false));
+                            if(bi.get().isEmpty()) break;
+                        }
+                    });
                 }
-                if(itemStack.isEmpty()) return itemStack;
+                itemStack = bi.get();
             }
-            tryTime ++;
-
+            if(itemStack.isEmpty()) return itemStack;
         }
         return itemStack;
     }

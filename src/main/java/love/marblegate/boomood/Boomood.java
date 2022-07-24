@@ -1,5 +1,6 @@
 package love.marblegate.boomood;
 
+import com.mojang.logging.LogUtils;
 import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.registry.EntityRegistry;
 import love.marblegate.boomood.registry.ItemRegistry;
@@ -8,9 +9,12 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.slf4j.Logger;
 
 @Mod("boomood")
 public class Boomood {
+    // Directly reference a slf4j logger
+    public static final Logger LOGGER = LogUtils.getLogger();
     public static String MOD_ID = "boomood";
 
     public Boomood() {
