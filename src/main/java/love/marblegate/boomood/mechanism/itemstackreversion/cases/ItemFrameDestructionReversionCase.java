@@ -41,13 +41,15 @@ public class ItemFrameDestructionReversionCase implements ReversionCase {
     public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
         Boomood.LOGGER.debug("Reverting ItemFrameDestruction. Details: " + this);
         // TODO need fix: will item frame spawn inside block
-        var isGlowItemFrame = Math.random() < Configuration.ItemStackReversion.GLOW_ITEM_FRAME_POSSIBILITY.get();
+        // TODO still problematic!
         var level = manipulator.level;
         ItemFrame itemFrame;
         for(var itemStack:targets){
-            var is = itemStack.copy();
             var optional = blockPosHolder.next();
+            // TODO all, not only this, if no place to place, add to chest
             if (optional.isEmpty()) return;
+            var isGlowItemFrame = Math.random() < Configuration.ItemStackReversion.GLOW_ITEM_FRAME_POSSIBILITY.get();
+            var is = itemStack.copy();
             var destination = optional.get();
             for (var direction : Direction.values()) {
                 if (isGlowItemFrame) itemFrame = new GlowItemFrame(level, destination, direction);
@@ -75,6 +77,7 @@ public class ItemFrameDestructionReversionCase implements ReversionCase {
                     else itemFrame = new ItemFrame(level, destination, od.get().getOpposite());
                     itemFrame.setItem(is);
                     level.addFreshEntity(itemFrame);
+                    is = ItemStack.EMPTY;
                     // TODO add custom particle effect for indication & add implement explosion particle
                 }
             }
