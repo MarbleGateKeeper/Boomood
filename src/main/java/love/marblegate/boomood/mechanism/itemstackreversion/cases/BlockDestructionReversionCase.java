@@ -1,7 +1,6 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
 import love.marblegate.boomood.Boomood;
-import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.BlockInfoHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
