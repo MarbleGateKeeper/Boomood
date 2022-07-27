@@ -9,12 +9,27 @@
     {
       "detail": {
         "type":"entity_death",
-        "entity": "minecraft:wither_skeleton",
-        "nbt": {
-
-        }
+        "entities": [
+          {
+            "id": "minecraft:skeleton",
+            "Count": 2
+          },
+          {
+            "id": "minecraft:wither_skeleton",
+            "Count": 2
+          }
+        ]
       },
       "weight": 100
+    },
+    {
+      "detail": {
+        "type":"entity_death",
+        "entity": {
+          "id": "minecraft:skeleton"
+        }
+      },
+      "weight": 400
     }
   ]
 }

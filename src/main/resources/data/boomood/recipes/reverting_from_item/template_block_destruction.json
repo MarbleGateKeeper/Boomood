@@ -29,11 +29,11 @@
     {
       "detail": {
         "type":"block_destruction",
-        "blocks": [{
+        "block": {
           "blockstate": {
             "Name": "minecraft:diamond_block"
-            }
-          }]
+          }
+        }
       },
       "weight": 500
     }

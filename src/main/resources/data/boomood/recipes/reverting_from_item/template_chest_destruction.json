@@ -30,6 +30,17 @@
     },
     {
       "detail": {
+        "type":"chest_destruction",
+        "itemstack": {
+          "id": "minecraft:enchanted_book",
+          "Count": 1,
+          "tag": "{\"StoredEnchantments\": [{\"id\": \"minecraft:luck_of_the_sea\", \"lvl\": 3s}]}"
+        }
+      },
+      "weight": 50
+    },
+    {
+      "detail": {
         "type":"chest_destruction"
       },
       "weight": 50

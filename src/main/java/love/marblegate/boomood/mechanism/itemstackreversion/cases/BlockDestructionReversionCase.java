@@ -1,7 +1,6 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
 import love.marblegate.boomood.Boomood;
-import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.BlockInfoHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
@@ -35,7 +34,7 @@ public class BlockDestructionReversionCase implements ReversionCase {
         for(var blockInfo:blockInfos){
             for(int i=0;i<blockInfo.count();i++){
                 var optional = blockPosHolder.next();
-                if (optional.isEmpty()) continue;
+                if (optional.isEmpty()) return;
                 var destination = optional.get();
                 // Falling block should have support block
                 if (blockInfo.blockState().getBlock() instanceof FallingBlock && level.getBlockState(destination.below()).is(Blocks.AIR)) {
