@@ -7,11 +7,15 @@ import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.EntityInf
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.BlockDestructionSituationResult;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.EntityDeathSituationResult;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ServerLevelAccessor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class EntityDeathReversionCase implements ReversionCase {
     //TODO
@@ -30,7 +34,25 @@ public class EntityDeathReversionCase implements ReversionCase {
     @Override
     public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
         Boomood.LOGGER.debug("Reverting EntityDeath. Details: " + this);
-        // TODO
+        for(var holder:holderList){
+            for(int i=0;i<holder.count();i++){
+                var optional = blockPosHolder.next();
+                if (optional.isEmpty()) return;
+                var destination = optional.get();
+                CompoundTag compoundtag = holder.tags().copy();
+                compoundtag.putString("id", holder.entityType().getRegistryName().toString());
+                Entity entity = EntityType.loadEntityRecursive(compoundtag, manipulator.getLevel(), (entity1) -> {
+                    entity1.moveTo(destination.getX(), destination.getY(), destination.getZ(), entity1.getYRot(), entity1.getXRot());
+                    return entity1;
+                });
+                if(entity!=null){
+                    if (entity instanceof Mob) {
+                        ((Mob)entity).finalizeSpawn((ServerLevelAccessor) manipulator.level, manipulator.level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.EVENT, (SpawnGroupData)null, (CompoundTag)null);
+                    }
+                    ((ServerLevel) manipulator.level).tryAddFreshEntityWithPassengers(entity);
+                }
+            }
+        }
     }
 
     @Override
