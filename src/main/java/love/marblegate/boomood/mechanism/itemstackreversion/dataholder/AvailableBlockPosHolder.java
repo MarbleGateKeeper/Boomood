@@ -35,6 +35,10 @@ public class AvailableBlockPosHolder {
         return Optional.ofNullable(a);
     }
 
+    public void remove(BlockPos blockPos){
+        blockPosQueue.remove(blockPos);
+    }
+
     public void appendChestLocation(BlockPos blockPos){
         availableChestBlockPosList.add(blockPos);
     }
