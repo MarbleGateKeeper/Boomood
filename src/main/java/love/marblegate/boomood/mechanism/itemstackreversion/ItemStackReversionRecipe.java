@@ -219,14 +219,6 @@ public class ItemStackReversionRecipe implements Recipe<Container> {
         return ret;
     }
 
-    public List<ReversionSituation> getItemStackEntityRevertPredicates() {
-        return predicates;
-    }
-
-    public List<IngredientHolder> getIngredientBoxs() {
-        return ingredientHolders;
-    }
-
     public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<ItemStackReversionRecipe> {
 
         @Override
