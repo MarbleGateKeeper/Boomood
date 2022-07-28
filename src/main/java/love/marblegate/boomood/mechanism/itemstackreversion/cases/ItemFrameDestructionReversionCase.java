@@ -13,7 +13,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.GlowItemFrame;
 import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.entity.decoration.ItemFrame;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -43,7 +42,7 @@ public class ItemFrameDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
+    public void revert(Entity manipulator, AvailableBlockPosHolder blockPosHolder) {
         Boomood.LOGGER.debug("Reverting ItemFrameDestruction. Details: " + this);
         // TODO need fix: will item frame spawn inside block
         // TODO still problematic!

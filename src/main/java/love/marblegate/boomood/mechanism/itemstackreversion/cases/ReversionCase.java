@@ -2,7 +2,7 @@ package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Entity;
 
 
 public interface ReversionCase {
@@ -11,5 +11,5 @@ public interface ReversionCase {
 
     void add(IntermediateResultHolder pack);
 
-    void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder);
+    void revert(Entity manipulator, AvailableBlockPosHolder blockPosHolder);
 }

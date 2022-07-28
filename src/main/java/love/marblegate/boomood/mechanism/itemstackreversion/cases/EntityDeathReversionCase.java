@@ -1,21 +1,17 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
 import love.marblegate.boomood.Boomood;
-import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.EntityInfoHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
-import love.marblegate.boomood.mechanism.itemstackreversion.result.BlockDestructionSituationResult;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.EntityDeathSituationResult;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 public class EntityDeathReversionCase implements ReversionCase {
     //TODO
@@ -32,7 +28,7 @@ public class EntityDeathReversionCase implements ReversionCase {
     }
 
     @Override
-    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
+    public void revert(Entity manipulator, AvailableBlockPosHolder blockPosHolder) {
         Boomood.LOGGER.debug("Reverting EntityDeath. Details: " + this);
         for(var holder:holderList){
             for(int i=0;i<holder.count();i++){

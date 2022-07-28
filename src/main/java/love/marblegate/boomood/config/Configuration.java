@@ -41,7 +41,7 @@ public class Configuration {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
         builder.push("common");
-        Common.RADIUS = builder.comment("This reversion area radius.")
+        Common.RADIUS = builder.comment("The reversion area radius.")
                 .defineInRange("RADIUS", 5, 2, 16);
         Common.AREA_SHAPE = builder.comment("The reversion area shape").defineEnum("AREA_SHAPE", Common.AreaType.SPHERE);
         Common.REMEDY_TYPE = builder.comment("If there is no enough space in reversion area, it decides how are is reverting process will be extend.").defineEnum("REMEDY_TYPE", Common.RemedyType.UPWARD);

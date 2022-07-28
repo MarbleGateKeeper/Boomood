@@ -3,7 +3,7 @@ package love.marblegate.boomood.mechanism.fluidreversion;
 import love.marblegate.boomood.mechanism.Reversion;
 import love.marblegate.boomood.misc.ServerUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.AABB;
@@ -29,7 +29,7 @@ public class FluidFlowReversion extends Reversion {
     }
 
     @Override
-    public void revert(Player manipulator, BlockPos blockPos) {
+    public void revert(Entity manipulator, BlockPos blockPos) {
         var blockPosStream = BlockPos.betweenClosedStream(area);
         var level = manipulator.level;
         blockPosStream.filter(bp -> {

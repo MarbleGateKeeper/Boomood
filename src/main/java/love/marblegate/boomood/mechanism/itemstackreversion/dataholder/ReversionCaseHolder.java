@@ -2,6 +2,7 @@ package love.marblegate.boomood.mechanism.itemstackreversion.dataholder;
 
 import com.google.common.collect.Lists;
 import love.marblegate.boomood.mechanism.itemstackreversion.cases.*;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -20,10 +21,10 @@ public class ReversionCaseHolder {
         caseList.get(holder.result().situationId()).add(holder);
     }
 
-    public void apply(Player player, AvailableBlockPosHolder holder){
+    public void apply(Entity entity, AvailableBlockPosHolder holder){
          var l = Lists.newArrayList(caseList.values());
          l.sort(Comparator.comparingInt(o -> -o.priority()));
-         l.forEach(reversionCase -> reversionCase.revert(player,holder));
+         l.forEach(reversionCase -> reversionCase.revert(entity,holder));
     }
 
     private ReversionCase createCase(String situationId){

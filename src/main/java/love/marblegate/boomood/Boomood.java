@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 public class Boomood {
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static String MOD_ID = "boomood";
+    public static final String MOD_ID = "boomood";
 
     public Boomood() {
         ItemRegistry.ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());

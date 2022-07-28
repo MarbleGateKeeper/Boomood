@@ -98,43 +98,6 @@ public class MiscUtils {
                 .expandTowards(-Configuration.Common.RADIUS.get() * 2, 0, -Configuration.Common.RADIUS.get() * 2);
     }
 
-    public static Optional<BlockPos> randomizeDestination(Level level, BlockPos blockPos){
-        // TODO algorithm still need to be redesign. all space need to be fixed first? Maybe?
-        var random = new Random();
-        var radius = Configuration.Common.RADIUS.get();
-        var tryTime = 0;
-        var destination = blockPos.east((int) Math.round(radius * random.nextGaussian(0,0.334))).south((int) Math.round(radius * random.nextGaussian(0,0.334)));
-        while(!isWithinReversionArea(destination,blockPos)){
-            destination = blockPos.east((int) Math.round(radius * random.nextGaussian(0,0.334))).south((int) Math.round(radius * random.nextGaussian(0,0.334)));
-        }
-        while(!level.getBlockState(destination).is(Blocks.AIR)){
-            destination = destination.above();
-            if(tryTime<3 && !isWithinReversionArea(destination,blockPos)){
-                destination = blockPos.east((int) Math.round(radius * random.nextGaussian(0,0.334))).south((int) Math.round(radius * random.nextGaussian(0,0.334)));
-                while(!isWithinReversionArea(destination,blockPos)){
-                    destination = blockPos.east((int) Math.round(radius * random.nextGaussian(0,0.334))).south((int) Math.round(radius * random.nextGaussian(0,0.334)));
-                }
-                tryTime ++;
-                continue;
-            } else if(tryTime<6){
-                if(Configuration.Common.REMEDY_TYPE.get().goUpward()){
-                    if(destination.getY()>=level.getMaxBuildHeight()){
-                        destination = blockPos.east((int) Math.round(radius * random.nextGaussian(0,0.334))).south((int) Math.round(radius * random.nextGaussian(0,0.334)));
-                        tryTime ++;
-                        continue;
-                    }
-                } else {
-                    if(!isWithinReversionArea(destination,blockPos,2)){
-                        destination = blockPos.east((int) Math.round(radius * 2 * random.nextGaussian(0,0.334))).south((int) Math.round(radius * 2 * random.nextGaussian(0,0.334)));
-                        tryTime ++;
-                        continue;
-                    }
-                }
-            } else if(tryTime==6) return Optional.empty();
-        }
-        return Optional.of(destination);
-    }
-
     public static boolean isWithinReversionArea(BlockPos groundZero, BlockPos tested){
         return isWithinReversionArea(groundZero,tested,1);
     }
@@ -150,7 +113,8 @@ public class MiscUtils {
             var pos = new BlockPos(blockPos);
             map.put(pos.getY(), pos);
         });
-        map.keySet().forEach(key->{
+        var orderedKeySet = map.keySet().stream().sorted(Comparator.comparingInt(a -> a));
+        orderedKeySet.forEach(key->{
             var temp = Lists.newArrayList(map.get(key).iterator());
             Collections.shuffle(temp);
             ret.addAll(temp);

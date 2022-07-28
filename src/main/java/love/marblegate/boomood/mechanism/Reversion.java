@@ -7,7 +7,7 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Entity;
 
 public abstract class Reversion {
     public static Codec<ReversionSituationResult> CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic ->
@@ -27,5 +27,5 @@ public abstract class Reversion {
             return DataResult.error(e.getMessage());
         }
     }, handler -> new Dynamic<>(JsonOps.INSTANCE,handler.toJson()));
-    public abstract void revert(Player manipulator, BlockPos blockPos);
+    public abstract void revert(Entity manipulator, BlockPos blockPos);
 }

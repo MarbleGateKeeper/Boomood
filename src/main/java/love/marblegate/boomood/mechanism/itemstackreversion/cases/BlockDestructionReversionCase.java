@@ -6,7 +6,7 @@ import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.BlockInfo
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.BlockDestructionSituationResult;
 import love.marblegate.boomood.misc.MiscUtils;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -28,7 +28,7 @@ public class BlockDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
+    public void revert(Entity manipulator, AvailableBlockPosHolder blockPosHolder) {
         Boomood.LOGGER.debug("Reverting BlockDestruction. Details: " + this);
         var level = manipulator.level;
         for(var blockInfo:blockInfos){

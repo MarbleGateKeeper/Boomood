@@ -1,12 +1,11 @@
 package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
 import love.marblegate.boomood.Boomood;
-import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.ChestDestructionSituationResult;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
 import love.marblegate.boomood.misc.MiscUtils;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ public class ChestDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
+    public void revert(Entity manipulator, AvailableBlockPosHolder blockPosHolder) {
         Boomood.LOGGER.debug("Reverting ChestDestruction. Details: " + this);
         for (var itemStack : targets) {
             MiscUtils.insertIntoChestOrCreateChest(manipulator.level, blockPosHolder, itemStack.copy());

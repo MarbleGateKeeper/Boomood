@@ -10,7 +10,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.decoration.ArmorStand;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -56,7 +55,7 @@ public class ArmorStandDestructionReversionCase implements ReversionCase {
     }
 
     @Override
-    public void revert(Player manipulator, AvailableBlockPosHolder blockPosHolder) {
+    public void revert(Entity manipulator, AvailableBlockPosHolder blockPosHolder) {
         var suits = arrangeIntoSuit(itemStacks);
         Boomood.LOGGER.debug("Reverting ArmorStandDestruction. Details: " + toDetailedString(suits));
         var level = manipulator.level;

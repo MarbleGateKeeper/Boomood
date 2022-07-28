@@ -4,7 +4,7 @@ import love.marblegate.boomood.mechanism.Reversion;
 import love.marblegate.boomood.misc.ServerUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
@@ -28,7 +28,7 @@ public class FireBurnReversion extends Reversion {
     }
 
     @Override
-    public void revert(Player manipulator, BlockPos blockPos) {
+    public void revert(Entity manipulator, BlockPos blockPos) {
         if (tryFixStructure) {
             //TODO
         } else {
