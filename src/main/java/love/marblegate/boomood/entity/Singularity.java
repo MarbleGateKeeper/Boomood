@@ -17,7 +17,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-// TODO
 public class Singularity extends Mob {
 
     private BlockPos groundZero;

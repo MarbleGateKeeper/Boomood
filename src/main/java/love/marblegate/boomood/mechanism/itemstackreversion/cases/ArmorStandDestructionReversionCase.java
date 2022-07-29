@@ -63,8 +63,7 @@ public class ArmorStandDestructionReversionCase implements ReversionCase {
             var optional = blockPosHolder.next();
             if (optional.isEmpty()) return;
             var destination = optional.get();
-            // Armor stand should have support block
-            if (level.getBlockState(destination.below()).is(Blocks.AIR)) {
+            if (Configuration.ItemStackReversion.FALLING_BLOCK_SHOULD_HAVE_SUPPORT_BLOCK.get() && level.getBlockState(destination.below()).is(Blocks.AIR)) {
                 level.setBlockAndUpdate(destination.below(), MiscUtils.getSupportBlock(level, destination.below()));
             }
             Vec3 vec3 = Vec3.atBottomCenterOf(destination);

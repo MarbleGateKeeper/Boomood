@@ -35,6 +35,8 @@ public class Configuration {
         public static ForgeConfigSpec.BooleanValue CREATE_TNT;
         public static ForgeConfigSpec.BooleanValue ARMOR_STAND_POSE_RANDOMIZE;
         public static ForgeConfigSpec.DoubleValue GLOW_ITEM_FRAME_POSSIBILITY;
+        public static ForgeConfigSpec.BooleanValue FALLING_BLOCK_SHOULD_HAVE_SUPPORT_BLOCK;
+        public static ForgeConfigSpec.BooleanValue ARMOR_STAND_SHOULD_HAVE_SUPPORT_BLOCK;
     }
 
     static {
@@ -48,12 +50,15 @@ public class Configuration {
         builder.pop();
 
         builder.push("itemstack_reversion");
+        // TODO: FOR TEACON we do not implement this.
         ItemStackReversion.CREATE_TNT = builder.comment("Will the reversion process put tnt block back?")
                 .define("CREATE_TNT", true);
         ItemStackReversion.ARMOR_STAND_POSE_RANDOMIZE = builder.comment("Will the reversion process put armor stand with randomized pose?")
                 .define("ARMOR_STAND_POSE_RANDOMIZE", true);
         ItemStackReversion.GLOW_ITEM_FRAME_POSSIBILITY = builder.comment("The possibility of the reversion process putting glow item frame?")
                 .defineInRange("GLOW_ITEM_FRAME_POSSIBILITY", 0.2,0,1);
+        ItemStackReversion.FALLING_BLOCK_SHOULD_HAVE_SUPPORT_BLOCK = builder.define("FALLING_BLOCK_SHOULD_HAVE_SUPPORT_BLOCK", true);
+        ItemStackReversion.ARMOR_STAND_SHOULD_HAVE_SUPPORT_BLOCK = builder.define("ARMOR_STAND_SHOULD_HAVE_SUPPORT_BLOCK", true);
         builder.pop();
 
         MOD_CONFIG = builder.build();

@@ -19,7 +19,6 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class TriggerItem extends Item {
-    private final static int ACTUAL_MAX_EFFECTIVE_DURATION = 100;
     public TriggerItem() {
         super(new Properties().tab(CreativeModeTab.TAB_COMBAT).stacksTo(1));
     }
@@ -57,7 +56,6 @@ public class TriggerItem extends Item {
     @Override
     public @NotNull ItemStack finishUsingItem(@NotNull ItemStack itemStack, Level level, LivingEntity user) {
         if (!level.isClientSide() && user instanceof Player player) {
-            // TODO notice player that holding too long
             player.displayClientMessage(new TranslatableComponent("notice.boomood.activating_reverser_too_long"), true);
             player.getCooldowns().addCooldown(this, 400);
         }
