@@ -9,8 +9,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 public record EntityInfoHolder(EntityType<?> entityType, CompoundTag tags, int count) {
     public static Codec<EntityInfoHolder> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ForgeRegistries.ENTITIES.getCodec().fieldOf("id").forGetter(EntityInfoHolder::entityType),
-            CompoundTag.CODEC.optionalFieldOf("tag",new CompoundTag()).forGetter(EntityInfoHolder::tags),
-            Codec.INT.optionalFieldOf("Count",1).forGetter(EntityInfoHolder::count)).apply(instance, EntityInfoHolder::new));
+            CompoundTag.CODEC.optionalFieldOf("tag", new CompoundTag()).forGetter(EntityInfoHolder::tags),
+            Codec.INT.optionalFieldOf("Count", 1).forGetter(EntityInfoHolder::count)).apply(instance, EntityInfoHolder::new));
 
     @Override
     public EntityType<?> entityType() {

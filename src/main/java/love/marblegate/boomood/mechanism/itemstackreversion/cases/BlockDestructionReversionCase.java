@@ -32,8 +32,8 @@ public class BlockDestructionReversionCase implements ReversionCase {
     public void revert(Entity manipulator, AvailableBlockPosHolder blockPosHolder) {
         Boomood.LOGGER.debug("Reverting BlockDestruction. Details: " + this);
         var level = manipulator.level;
-        for(var blockInfo:blockInfos){
-            for(int i=0;i<blockInfo.count();i++){
+        for (var blockInfo : blockInfos) {
+            for (int i = 0; i < blockInfo.count(); i++) {
                 var optional = blockPosHolder.next();
                 if (optional.isEmpty()) return;
                 var destination = optional.get();

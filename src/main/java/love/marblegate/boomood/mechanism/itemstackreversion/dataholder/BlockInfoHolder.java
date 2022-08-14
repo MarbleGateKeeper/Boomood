@@ -8,8 +8,8 @@ import net.minecraft.world.level.block.state.BlockState;
 public record BlockInfoHolder(BlockState blockState, CompoundTag tags, int count) {
     public static Codec<BlockInfoHolder> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockState.CODEC.fieldOf("blockstate").forGetter(BlockInfoHolder::blockState),
-            CompoundTag.CODEC.optionalFieldOf("tags",new CompoundTag()).forGetter(BlockInfoHolder::tags),
-            Codec.INT.optionalFieldOf("count",1).forGetter(BlockInfoHolder::count)).apply(instance, BlockInfoHolder::new));
+            CompoundTag.CODEC.optionalFieldOf("tags", new CompoundTag()).forGetter(BlockInfoHolder::tags),
+            Codec.INT.optionalFieldOf("count", 1).forGetter(BlockInfoHolder::count)).apply(instance, BlockInfoHolder::new));
 
     @Override
     public BlockState blockState() {

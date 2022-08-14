@@ -1,6 +1,5 @@
 package love.marblegate.boomood.item;
 
-import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.entity.Singularity;
 import love.marblegate.boomood.misc.MiscUtils;
 import love.marblegate.boomood.misc.ServerUtils;
@@ -39,7 +38,7 @@ public class TriggerItem extends Item {
     public void releaseUsing(@NotNull ItemStack itemStack, Level level, LivingEntity user, int timeLeft) {
         if (!level.isClientSide() && user instanceof Player player) {
             var groundZero = MiscUtils.findLookAt(player);
-            if(level.isInWorldBounds(groundZero)){
+            if (level.isInWorldBounds(groundZero)) {
                 player.getCooldowns().addCooldown(this, 40);
                 Singularity singularity = new Singularity(level, groundZero);
                 singularity.moveTo(Vec3.atCenterOf(groundZero));
@@ -65,10 +64,10 @@ public class TriggerItem extends Item {
 
     @Override
     public void onUsingTick(ItemStack stack, LivingEntity user, int count) {
-        if(!user.level.isClientSide()){
-            if(user instanceof Player player){
+        if (!user.level.isClientSide()) {
+            if (user instanceof Player player) {
                 var groundZero = MiscUtils.findLookAt(player);
-                if(user.level.isInWorldBounds(groundZero)){
+                if (user.level.isInWorldBounds(groundZero)) {
                     ServerUtils.addParticle(user.level, ParticleTypes.ENCHANT, groundZero, 0D, 3D, 0D, 0.1, 10);
                     ServerUtils.addParticle(user.level, ParticleTypes.DRAGON_BREATH, groundZero, 0D, 3D, 0D, 0.1, 10);
                 } else {

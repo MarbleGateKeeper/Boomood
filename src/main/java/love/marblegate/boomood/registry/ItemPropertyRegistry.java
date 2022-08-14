@@ -1,7 +1,6 @@
 package love.marblegate.boomood.registry;
 
 import love.marblegate.boomood.Boomood;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -20,12 +19,9 @@ public class ItemPropertyRegistry {
         event.enqueueWork(() ->
         {
             ItemProperties.register(ItemRegistry.RESULT_REVERSER.get(), new ResourceLocation(Boomood.MOD_ID, "time"), (stack, level, living, id) -> {
-                if(level==null) {
-                    if(living == null) return 0F;
-                    else level = (ClientLevel) living.level;
-                }
-                var d = living.isUsingItem() && living.getUseItem() == stack? 20: 200;
-                return Math.max(1-(level.getDayTime() % d / (float) d),0);
+                if (level == null || living == null) return 0F;
+                var d = living.isUsingItem() && living.getUseItem() == stack ? 20 : 200;
+                return Math.max(1 - (level.getDayTime() % d / (float) d), 0);
             });
         });
     }

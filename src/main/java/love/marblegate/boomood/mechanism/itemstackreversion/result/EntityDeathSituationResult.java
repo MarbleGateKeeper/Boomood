@@ -3,12 +3,8 @@ package love.marblegate.boomood.mechanism.itemstackreversion.result;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.JsonOps;
-import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.BlockInfoHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.EntityInfoHolder;
-import love.marblegate.boomood.misc.MiscUtils;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 
@@ -18,23 +14,23 @@ public class EntityDeathSituationResult extends ReversionSituationResult {
 
     public EntityDeathSituationResult(JsonObject jsonObject) {
         if (jsonObject.has("entity")) {
-            try{
+            try {
                 var entity = GsonHelper.getAsJsonObject(jsonObject, "entity");
                 var dataResult = EntityInfoHolder.CODEC.parse(JsonOps.INSTANCE, entity);
                 holderList = List.of(dataResult.getOrThrow(false, err -> {
                     throw new JsonSyntaxException("Invalid entity: " + entity + ". Error: " + err);
                 }));
-            }catch(ClassCastException e){
+            } catch (ClassCastException e) {
                 throw new JsonSyntaxException("\"entity\" in recipe json must be a JsonObject to represent a entity.");
             }
         } else if (jsonObject.has("entities")) {
-            try{
+            try {
                 var entities = GsonHelper.getAsJsonArray(jsonObject, "entities");
                 var dataResult = EntityInfoHolder.CODEC.listOf().parse(JsonOps.INSTANCE, entities);
                 holderList = dataResult.getOrThrow(false, err -> {
                     throw new JsonSyntaxException("Invalid entities: " + entities + ". Error: " + err);
                 });
-            }catch(ClassCastException e){
+            } catch (ClassCastException e) {
                 throw new JsonSyntaxException("\"entities\" in recipe json must be a JsonArray to represent entities.");
             }
         } else throw new JsonSyntaxException("\"entity\" or \"entities\" must appear in recipe json.");
@@ -44,7 +40,7 @@ public class EntityDeathSituationResult extends ReversionSituationResult {
     public JsonObject toJson() {
         var ret = new JsonObject();
         ret.addProperty("type", "entity_death");
-        if(holderList.size()==1)
+        if (holderList.size() == 1)
             ret.add("entity", EntityInfoHolder.CODEC.encodeStart(JsonOps.INSTANCE, holderList.get(0)).get().left().get());
         else
             ret.add("entities", EntityInfoHolder.CODEC.listOf().encodeStart(JsonOps.INSTANCE, holderList).get().left().get());

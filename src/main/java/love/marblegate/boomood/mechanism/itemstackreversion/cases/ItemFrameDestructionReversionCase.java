@@ -4,8 +4,8 @@ import com.google.common.collect.Lists;
 import love.marblegate.boomood.Boomood;
 import love.marblegate.boomood.config.Configuration;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
-import love.marblegate.boomood.mechanism.itemstackreversion.result.ItemFrameDestructionSituationResult;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
+import love.marblegate.boomood.mechanism.itemstackreversion.result.ItemFrameDestructionSituationResult;
 import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,7 +35,7 @@ public class ItemFrameDestructionReversionCase implements ReversionCase {
     @Override
     public void add(IntermediateResultHolder pack) {
         var result = (ItemFrameDestructionSituationResult) pack.result();
-        if(result.getTargets()==null)
+        if (result.getTargets() == null)
             targets.addAll(pack.items());
         else
             targets.addAll(result.getTargets());
@@ -48,7 +48,7 @@ public class ItemFrameDestructionReversionCase implements ReversionCase {
         // TODO still problematic!
         var level = manipulator.level;
         ItemFrame itemFrame;
-        for(var itemStack:targets){
+        for (var itemStack : targets) {
             var optional = blockPosHolder.next();
             // TODO all, not only this, if no place to place, add to chest
             if (optional.isEmpty()) return;
@@ -98,7 +98,7 @@ public class ItemFrameDestructionReversionCase implements ReversionCase {
         Collections.shuffle(ds);
         for (var direction : ds) {
             if (level.getBlockState(blockPos.relative(direction)).getBlock().equals(Blocks.AIR)) {
-                if(level.getEntities((Entity)null, new AABB(blockPos.relative(direction)), (entity) -> entity instanceof HangingEntity).isEmpty())
+                if (level.getEntities((Entity) null, new AABB(blockPos.relative(direction)), (entity) -> entity instanceof HangingEntity).isEmpty())
                     return Optional.of(direction);
             }
         }

@@ -59,7 +59,7 @@ public class ArmorStandDestructionReversionCase implements ReversionCase {
         var suits = arrangeIntoSuit(itemStacks);
         Boomood.LOGGER.debug("Reverting ArmorStandDestruction. Details: " + toDetailedString(suits));
         var level = manipulator.level;
-        for(var suit:suits){
+        for (var suit : suits) {
             var optional = blockPosHolder.next();
             if (optional.isEmpty()) return;
             var destination = optional.get();
@@ -74,13 +74,13 @@ public class ArmorStandDestructionReversionCase implements ReversionCase {
                     armorStand.moveTo(armorStand.getX(), armorStand.getY(), armorStand.getZ(), (float) (Math.random() * 360), 0.0F);
                     MiscUtils.randomizeArmorStandPose(armorStand);
                 }
-                for (var itemStack:suit) {
+                for (var itemStack : suit) {
                     EquipmentSlot equipmentslot = Mob.getEquipmentSlotForItem(itemStack);
                     armorStand.setItemSlot(equipmentslot, itemStack);
                 }
                 level.addFreshEntity(armorStand);
             } else {
-                for(var itemStack:suit){
+                for (var itemStack : suit) {
                     MiscUtils.insertIntoChestOrCreateChest(level, blockPosHolder, itemStack);
                 }
             }

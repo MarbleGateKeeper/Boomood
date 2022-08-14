@@ -30,8 +30,8 @@ public class EntityDeathReversionCase implements ReversionCase {
     @Override
     public void revert(Entity manipulator, AvailableBlockPosHolder blockPosHolder) {
         Boomood.LOGGER.debug("Reverting EntityDeath. Details: " + this);
-        for(var holder:holderList){
-            for(int i=0;i<holder.count();i++){
+        for (var holder : holderList) {
+            for (int i = 0; i < holder.count(); i++) {
                 var optional = blockPosHolder.next();
                 if (optional.isEmpty()) return;
                 var destination = optional.get();
@@ -41,9 +41,9 @@ public class EntityDeathReversionCase implements ReversionCase {
                     entity1.moveTo(destination.getX(), destination.getY(), destination.getZ(), entity1.getYRot(), entity1.getXRot());
                     return entity1;
                 });
-                if(entity!=null){
+                if (entity != null) {
                     if (entity instanceof Mob) {
-                        ((Mob)entity).finalizeSpawn((ServerLevelAccessor) manipulator.level, manipulator.level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.EVENT, (SpawnGroupData)null, (CompoundTag)null);
+                        ((Mob) entity).finalizeSpawn((ServerLevelAccessor) manipulator.level, manipulator.level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.EVENT, (SpawnGroupData) null, (CompoundTag) null);
                     }
                     ((ServerLevel) manipulator.level).tryAddFreshEntityWithPassengers(entity);
                 }

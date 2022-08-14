@@ -20,29 +20,29 @@ public class IngredientHolder {
                 try {
                     var jsonObject = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
                     Type type;
-                    if(jsonObject.has("mode"))
-                        type = Type.CODEC.parse(JsonOps.INSTANCE,jsonObject.getAsJsonPrimitive("mode")).getOrThrow(false,err->{
+                    if (jsonObject.has("mode"))
+                        type = Type.CODEC.parse(JsonOps.INSTANCE, jsonObject.getAsJsonPrimitive("mode")).getOrThrow(false, err -> {
                             throw new JsonSyntaxException(err);
                         });
                     else type = Type.STANDARD_MATCH;
-                    Ingredient ingredient = switch (type){
+                    Ingredient ingredient = switch (type) {
                         case STANDARD_MATCH -> Ingredient.fromJson(jsonObject.get("match"));
                         case EXACT_MATCH -> NBTIngredient.Serializer.INSTANCE.parse((JsonObject) jsonObject.get("match"));
-                        case PARTIAL_MATCH -> PartialNBTIngredient.Serializer.INSTANCE.parse((JsonObject) jsonObject.get("match"));
+                        case PARTIAL_MATCH ->
+                                PartialNBTIngredient.Serializer.INSTANCE.parse((JsonObject) jsonObject.get("match"));
                     };
                     int min, max;
-                    if(jsonObject.has("min")){
+                    if (jsonObject.has("min")) {
                         min = jsonObject.getAsJsonPrimitive("min").getAsInt();
-                        if(min<1) throw new JsonSyntaxException("min must not be less than 1! min:" + min + ".");
-                    }
-                    else min = 1;
-                    if(jsonObject.has("max")){
+                        if (min < 1) throw new JsonSyntaxException("min must not be less than 1! min:" + min + ".");
+                    } else min = 1;
+                    if (jsonObject.has("max")) {
                         max = jsonObject.getAsJsonPrimitive("max").getAsInt();
-                        if(max<1) throw new JsonSyntaxException("max must not be less than 1! max:" + max + ".");
-                    }
-                    else max = min;
-                    if(min>max) throw new JsonSyntaxException("max must not be less than mix! max:" + max + ". min:" + min +".");
-                    var ret = new IngredientHolder(ingredient,type,min,max);
+                        if (max < 1) throw new JsonSyntaxException("max must not be less than 1! max:" + max + ".");
+                    } else max = min;
+                    if (min > max)
+                        throw new JsonSyntaxException("max must not be less than mix! max:" + max + ". min:" + min + ".");
+                    var ret = new IngredientHolder(ingredient, type, min, max);
                     return DataResult.success(ret);
                 } catch (Exception e) {
                     return DataResult.error(e.getMessage());
@@ -50,14 +50,15 @@ public class IngredientHolder {
             },
             box -> {
                 var result = new JsonObject();
-                result.add("mode",Type.CODEC.encodeStart(JsonOps.INSTANCE,box.type).getOrThrow(false, err->{}));
+                result.add("mode", Type.CODEC.encodeStart(JsonOps.INSTANCE, box.type).getOrThrow(false, err -> {
+                }));
                 var ingredientJson = box.ingredient.toJson();
-                if(box.type!=Type.STANDARD_MATCH){
+                if (box.type != Type.STANDARD_MATCH) {
                     ingredientJson.getAsJsonObject().remove("type");
                 }
-                result.add("match",ingredientJson);
-                result.addProperty("min",box.minCount);
-                result.addProperty("max",box.maxCount);
+                result.add("match", ingredientJson);
+                result.addProperty("min", box.minCount);
+                result.addProperty("max", box.maxCount);
                 return new Dynamic<>(JsonOps.INSTANCE, result);
             }
     );
@@ -77,7 +78,7 @@ public class IngredientHolder {
         this.maxCount = maxCount;
     }
 
-    public boolean test(ItemStack itemStack){
+    public boolean test(ItemStack itemStack) {
         return itemStack.getCount() >= minCount && ingredient.test(itemStack);
     }
 
@@ -99,7 +100,7 @@ public class IngredientHolder {
                 '}';
     }
 
-    public enum Type{
+    public enum Type {
         STANDARD_MATCH("standard"),
         EXACT_MATCH("exact"),
         PARTIAL_MATCH("partial");
@@ -108,11 +109,11 @@ public class IngredientHolder {
                 {
                     try {
                         var s = dynamic.convert(JsonOps.INSTANCE).getValue().getAsString();
-                        if(s.equals("standard")){
+                        if (s.equals("standard")) {
                             return DataResult.success(STANDARD_MATCH);
-                        } else if(s.equals("exact")){
+                        } else if (s.equals("exact")) {
                             return DataResult.success(EXACT_MATCH);
-                        } else if(s.equals("partial")){
+                        } else if (s.equals("partial")) {
                             return DataResult.success(PARTIAL_MATCH);
                         } else {
                             return DataResult.error("Expected mode to be \"standard\", \"exact\" or \"partial\", was " + s);

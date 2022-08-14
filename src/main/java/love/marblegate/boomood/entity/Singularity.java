@@ -25,32 +25,31 @@ public class Singularity extends Mob {
 
     public Singularity(EntityType<? extends Mob> entityType, Level level) {
         super(entityType, level);
-        groundZero = new BlockPos(0,0,0);
+        groundZero = new BlockPos(0, 0, 0);
     }
 
-    public Singularity(Level level, BlockPos groundZero){
-        super(EntityRegistry.SINGULARITY.get(),level);
+    public Singularity(Level level, BlockPos groundZero) {
+        super(EntityRegistry.SINGULARITY.get(), level);
         this.groundZero = groundZero;
     }
 
     @Override
     public void tick() {
-        if(!level.isClientSide()){
-            if(lifespan!=0){
-                if(lifespan == 20){
-                    if(level.isInWorldBounds(groundZero)){
+        if (!level.isClientSide()) {
+            if (lifespan != 0) {
+                if (lifespan == 20) {
+                    if (level.isInWorldBounds(groundZero)) {
                         var area = MiscUtils.createScanningArea(groundZero);
                         // Extinguish fire
-                        ReversionFactory.fireBurnRevert(area).revert(this ,groundZero);
+                        ReversionFactory.fireBurnRevert(area).revert(this, groundZero);
                         // Remove non-source liquid & Water
-                        ReversionFactory.fluidFlowRevert(area).revert(this ,groundZero);
+                        ReversionFactory.fluidFlowRevert(area).revert(this, groundZero);
                         // Revert item Drop
-                        ReversionFactory.itemDropRevert(level, groundZero, area).revert(this ,groundZero);
+                        ReversionFactory.itemDropRevert(level, groundZero, area).revert(this, groundZero);
                     }
                 }
                 lifespan--;
-            }
-            else discard();
+            } else discard();
         } else {
             var radius = Configuration.Common.RADIUS.get();
             float v = (float) Math.PI * radius * radius;
@@ -73,8 +72,8 @@ public class Singularity extends Mob {
 
     @Override
     public void addAdditionalSaveData(@NotNull CompoundTag compoundTag) {
-        compoundTag.putInt("lifespan",lifespan);
-        compoundTag.put("groundZero",NbtUtils.writeBlockPos(groundZero));
+        compoundTag.putInt("lifespan", lifespan);
+        compoundTag.put("groundZero", NbtUtils.writeBlockPos(groundZero));
     }
 
     @Override
@@ -82,11 +81,11 @@ public class Singularity extends Mob {
         return true;
     }
 
-    public static AttributeSupplier.Builder prepareAttributes(){
+    public static AttributeSupplier.Builder prepareAttributes() {
         return LivingEntity.createLivingAttributes()
-                .add(Attributes.MAX_HEALTH,2048)
-                .add(Attributes.FOLLOW_RANGE,0)
-                .add(Attributes.MOVEMENT_SPEED,0)
-                .add(Attributes.ATTACK_DAMAGE,2048);
+                .add(Attributes.MAX_HEALTH, 2048)
+                .add(Attributes.FOLLOW_RANGE, 0)
+                .add(Attributes.MOVEMENT_SPEED, 0)
+                .add(Attributes.ATTACK_DAMAGE, 2048);
     }
 }

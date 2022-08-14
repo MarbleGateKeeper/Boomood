@@ -21,11 +21,13 @@ public abstract class Reversion {
                 case "item_frame_destruction" -> DataResult.success(new ItemFrameDestructionSituationResult(st));
                 case "armor_stand_destruction" -> DataResult.success(new ArmorStandDestructionSituationResult());
                 case "block_destruction" -> DataResult.success(new BlockDestructionSituationResult(st));
-                default -> throw new JsonSyntaxException("Expected type to be \"entity_death\", \"chest_destruction\", \"item_frame_destruction\", \"armor_stand_destruction\" or \"block_destruction\", was " + st);
+                default ->
+                        throw new JsonSyntaxException("Expected type to be \"entity_death\", \"chest_destruction\", \"item_frame_destruction\", \"armor_stand_destruction\" or \"block_destruction\", was " + st);
             };
         } catch (Exception e) {
             return DataResult.error(e.getMessage());
         }
-    }, handler -> new Dynamic<>(JsonOps.INSTANCE,handler.toJson()));
+    }, handler -> new Dynamic<>(JsonOps.INSTANCE, handler.toJson()));
+
     public abstract void revert(Entity manipulator, BlockPos blockPos);
 }

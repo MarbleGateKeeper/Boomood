@@ -40,34 +40,34 @@ public class ReversionSituation {
         }
     }, conditions -> {
         var ret = new JsonObject();
-        for(var condition:conditions){
-            if(condition instanceof ReversionSituation.HeightPredicate heightPredicate){
+        for (var condition : conditions) {
+            if (condition instanceof ReversionSituation.HeightPredicate heightPredicate) {
                 var temp = new JsonObject();
-                if(heightPredicate.getType() == ReversionSituation.HeightPredicate.Type.GREATER)
-                    temp.addProperty("type","greater");
-                else temp.addProperty("type","less");
-                temp.addProperty("content",heightPredicate.getLimit());
-                ret.add("height",temp);
+                if (heightPredicate.getType() == ReversionSituation.HeightPredicate.Type.GREATER)
+                    temp.addProperty("type", "greater");
+                else temp.addProperty("type", "less");
+                temp.addProperty("content", heightPredicate.getLimit());
+                ret.add("height", temp);
             } else {
                 var condition1 = (ReversionSituation.BiomePredicate) condition;
                 var temp = new JsonObject();
-                if(condition1.getType() == ReversionSituation.BiomePredicate.Type.ALLOWLIST)
-                    temp.addProperty("type","allowlist");
-                else temp.addProperty("type","blocklist");
+                if (condition1.getType() == ReversionSituation.BiomePredicate.Type.ALLOWLIST)
+                    temp.addProperty("type", "allowlist");
+                else temp.addProperty("type", "blocklist");
                 var temp2 = new JsonArray();
-                for(var biome : condition1.getBiomeList()){
+                for (var biome : condition1.getBiomeList()) {
                     temp2.add(biome.getRegistryName().toString());
                 }
-                temp.add("content",temp2);
+                temp.add("content", temp2);
             }
         }
-        return new Dynamic<>(JsonOps.INSTANCE,ret);
+        return new Dynamic<>(JsonOps.INSTANCE, ret);
     });
 
     public static Codec<ReversionSituation> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Reversion.CODEC.fieldOf("detail").forGetter(ReversionSituation::getReversionCase),
             CONDITION_CODEC.optionalFieldOf("condition", new ArrayList<>()).forGetter(ReversionSituation::getConditions),
-            Codec.intRange(0,385 * 10 * 10).fieldOf("weight").forGetter(ReversionSituation::getWeight)).apply(instance, ReversionSituation::new));
+            Codec.intRange(0, 385 * 10 * 10).fieldOf("weight").forGetter(ReversionSituation::getWeight)).apply(instance, ReversionSituation::new));
     private final ReversionSituationResult reversionSituationResult;
     private final List<Condition> conditions;
     private final int weight;

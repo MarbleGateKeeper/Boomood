@@ -4,8 +4,8 @@ import com.google.common.collect.Lists;
 import love.marblegate.boomood.Boomood;
 import love.marblegate.boomood.mechanism.Reversion;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
-import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.ReversionCaseHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
+import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.ReversionCaseHolder;
 import love.marblegate.boomood.mechanism.itemstackreversion.result.ReversionSituationResult;
 import love.marblegate.boomood.registry.RecipeRegistry;
 import net.minecraft.core.BlockPos;
@@ -72,8 +72,8 @@ public class ItemStackDropReversion extends Reversion {
         if (!armorConsumed.isEmpty())
             intermediateResultHolders.add(new IntermediateResultHolder(ReversionSituationResult.createArmorHandler(), Lists.newArrayList(armorConsumed)));
         var commonConsumed = items.stream().filter(itemStack -> !(itemStack.getItem() instanceof ArmorItem)).toList();
-        if (!commonConsumed.isEmpty()){
-            for(var item:commonConsumed){
+        if (!commonConsumed.isEmpty()) {
+            for (var item : commonConsumed) {
                 intermediateResultHolders.add(new IntermediateResultHolder(ReversionSituationResult.createDefaultHandler(), Lists.newArrayList(item)));
             }
         }
@@ -83,7 +83,7 @@ public class ItemStackDropReversion extends Reversion {
     public void revert(Entity manipulator, BlockPos blockPos) {
         Boomood.LOGGER.debug("ItemStackDropReversion is in reverting progress.");
         // TODO
-        caseHolder.apply(manipulator,new AvailableBlockPosHolder(manipulator.level,blockPos));
+        caseHolder.apply(manipulator, new AvailableBlockPosHolder(manipulator.level, blockPos));
     }
 
 }

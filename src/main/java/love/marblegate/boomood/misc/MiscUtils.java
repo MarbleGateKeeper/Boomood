@@ -38,43 +38,44 @@ public class MiscUtils {
     public static Codec<ItemStack> ITEMSTACK_CODEC = Codec.PASSTHROUGH.comapFlatMap(dynamic -> {
         var json = dynamic.convert(JsonOps.INSTANCE).getValue().getAsJsonObject();
         Item item;
-        if(json.has("id"))
-            item = Registry.ITEM.byNameCodec().parse(JsonOps.INSTANCE,json.getAsJsonPrimitive("id")).getOrThrow(false, err->{
+        if (json.has("id"))
+            item = Registry.ITEM.byNameCodec().parse(JsonOps.INSTANCE, json.getAsJsonPrimitive("id")).getOrThrow(false, err -> {
                 throw new JsonSyntaxException(err);
             });
-        else return DataResult.error("id field is missing! Json representing ItemStack must has a id field which has a Resourcelocation of Item in it.");
+        else
+            return DataResult.error("id field is missing! Json representing ItemStack must has a id field which has a Resourcelocation of Item in it.");
         var ret = new ItemStack(item);
         var count = 1;
-        if(json.has("Count")){
-            try{
+        if (json.has("Count")) {
+            try {
                 count = json.getAsJsonPrimitive("Count").getAsInt();
-                if(ret.getMaxStackSize()<count && count<1)
+                if (ret.getMaxStackSize() < count && count < 1)
                     return DataResult.error("count field is invalid! Given item cannot be stacked to this amount in single ItemStack!");
                 else ret.setCount(count);
-            } catch(NumberFormatException | ClassCastException e){
+            } catch (NumberFormatException | ClassCastException e) {
                 throw new JsonSyntaxException("Count field is invalid! it must be a integer!");
             }
         }
         CompoundTag tag;
-        if(json.has("tag")) {
+        if (json.has("tag")) {
             try {
                 tag = TagParser.parseTag(json.getAsJsonPrimitive("tag").getAsString());
                 ret.setTag(tag);
             } catch (CommandSyntaxException e) {
                 throw new JsonSyntaxException("tag field is invalid! it cannot be parsed into nbt!");
-            } catch(ClassCastException e){
+            } catch (ClassCastException e) {
                 throw new JsonSyntaxException("tag field is invalid! it must be a String!");
             }
         }
         return DataResult.success(ret);
-    },itemStack -> {
+    }, itemStack -> {
         var ret = new JsonObject();
-        ret.addProperty("id",itemStack.getItem().getRegistryName().toString());
-        ret.addProperty("Count",itemStack.getCount());
-        if(itemStack.getTag()!=null){
-            ret.addProperty("nbt",itemStack.getTag().getAsString());
+        ret.addProperty("id", itemStack.getItem().getRegistryName().toString());
+        ret.addProperty("Count", itemStack.getCount());
+        if (itemStack.getTag() != null) {
+            ret.addProperty("nbt", itemStack.getTag().getAsString());
         }
-        return new Dynamic<>(JsonOps.INSTANCE,ret);
+        return new Dynamic<>(JsonOps.INSTANCE, ret);
     });
 
     public static BlockPos findLookAt(Player player) {
@@ -82,39 +83,39 @@ public class MiscUtils {
         return ((BlockHitResult) hitResult).getBlockPos();
     }
 
-    public static AABB createScanningArea(BlockPos blockPos){
+    public static AABB createScanningArea(BlockPos blockPos) {
         return new AABB(blockPos)
                 .expandTowards(Configuration.Common.RADIUS.get(), Configuration.Common.RADIUS.get(), Configuration.Common.RADIUS.get())
                 .expandTowards(-Configuration.Common.RADIUS.get(), 0, -Configuration.Common.RADIUS.get());
     }
 
-    public static AABB createRemedyScanningArea(Level level, BlockPos blockPos){
-        if(Configuration.Common.REMEDY_TYPE.get().goUpward())
+    public static AABB createRemedyScanningArea(Level level, BlockPos blockPos) {
+        if (Configuration.Common.REMEDY_TYPE.get().goUpward())
             return new AABB(blockPos)
-                .expandTowards(Configuration.Common.RADIUS.get(), level.getMaxBuildHeight(), Configuration.Common.RADIUS.get())
-                .expandTowards(-Configuration.Common.RADIUS.get(), 0, -Configuration.Common.RADIUS.get());
+                    .expandTowards(Configuration.Common.RADIUS.get(), level.getMaxBuildHeight(), Configuration.Common.RADIUS.get())
+                    .expandTowards(-Configuration.Common.RADIUS.get(), 0, -Configuration.Common.RADIUS.get());
         else return new AABB(blockPos)
-                .expandTowards(Configuration.Common.RADIUS.get() * 2, Configuration.Common.RADIUS.get() * 2,Configuration.Common.RADIUS.get() * 2)
+                .expandTowards(Configuration.Common.RADIUS.get() * 2, Configuration.Common.RADIUS.get() * 2, Configuration.Common.RADIUS.get() * 2)
                 .expandTowards(-Configuration.Common.RADIUS.get() * 2, 0, -Configuration.Common.RADIUS.get() * 2);
     }
 
-    public static boolean isWithinReversionArea(BlockPos groundZero, BlockPos tested){
-        return isWithinReversionArea(groundZero,tested,1);
+    public static boolean isWithinReversionArea(BlockPos groundZero, BlockPos tested) {
+        return isWithinReversionArea(groundZero, tested, 1);
     }
 
-    public static boolean isWithinReversionArea(BlockPos groundZero, BlockPos tested, double extendingRate){
+    public static boolean isWithinReversionArea(BlockPos groundZero, BlockPos tested, double extendingRate) {
         return !Configuration.Common.AREA_SHAPE.get().isSphere() || Math.sqrt(groundZero.distSqr(tested)) <= Configuration.Common.RADIUS.get() * extendingRate;
     }
 
-    public static List<BlockPos> createShuffledBlockPosList(AABB aabb){
+    public static List<BlockPos> createShuffledBlockPosList(AABB aabb) {
         var ret = new ArrayList<BlockPos>();
-        HashMultimap<Integer,BlockPos> map = HashMultimap.create();
+        HashMultimap<Integer, BlockPos> map = HashMultimap.create();
         BlockPos.betweenClosedStream(aabb).forEach(blockPos -> {
             var pos = new BlockPos(blockPos);
             map.put(pos.getY(), pos);
         });
         var orderedKeySet = map.keySet().stream().sorted(Comparator.comparingInt(a -> a));
-        orderedKeySet.forEach(key->{
+        orderedKeySet.forEach(key -> {
             var temp = Lists.newArrayList(map.get(key).iterator());
             Collections.shuffle(temp);
             ret.addAll(temp);
@@ -122,7 +123,7 @@ public class MiscUtils {
         return ret;
     }
 
-    public static void insertIntoChestOrCreateChest(Level level, AvailableBlockPosHolder blockPosHolder, ItemStack insertItemStack){
+    public static void insertIntoChestOrCreateChest(Level level, AvailableBlockPosHolder blockPosHolder, ItemStack insertItemStack) {
         insertItemStack = searchValidChestAndInsert(level, blockPosHolder, insertItemStack);
         if (!insertItemStack.isEmpty()) {
             var optional = blockPosHolder.next();
@@ -140,28 +141,28 @@ public class MiscUtils {
         }
     }
 
-    public static ItemStack searchValidChestAndInsert(Level level, AvailableBlockPosHolder blockPosHolder, ItemStack itemStack){
-        for(var bp: blockPosHolder.chestLocations()){
-            if(level.getBlockState(bp).is(Blocks.CHEST)){
+    public static ItemStack searchValidChestAndInsert(Level level, AvailableBlockPosHolder blockPosHolder, ItemStack itemStack) {
+        for (var bp : blockPosHolder.chestLocations()) {
+            if (level.getBlockState(bp).is(Blocks.CHEST)) {
                 BlockEntity chestBlockEntity = level.getBlockEntity(bp);
                 var itemhandler = chestBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
                 var bi = new AtomicReference<>(itemStack.copy());
-                if(itemhandler.isPresent()){
-                    itemhandler.ifPresent(cap->{
-                        for(int i=0;i<cap.getSlots();i++){
+                if (itemhandler.isPresent()) {
+                    itemhandler.ifPresent(cap -> {
+                        for (int i = 0; i < cap.getSlots(); i++) {
                             bi.set(cap.insertItem(i, bi.get(), false));
-                            if(bi.get().isEmpty()) break;
+                            if (bi.get().isEmpty()) break;
                         }
                     });
                 }
                 itemStack = bi.get();
             }
-            if(itemStack.isEmpty()) return itemStack;
+            if (itemStack.isEmpty()) return itemStack;
         }
         return itemStack;
     }
 
-    public static BlockState getSupportBlock(Level level, BlockPos blockPos){
+    public static BlockState getSupportBlock(Level level, BlockPos blockPos) {
         // TODO check wiki to edit this method
         return Blocks.GLASS.defaultBlockState();
     }

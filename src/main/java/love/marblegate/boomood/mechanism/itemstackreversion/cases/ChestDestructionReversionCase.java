@@ -2,8 +2,8 @@ package love.marblegate.boomood.mechanism.itemstackreversion.cases;
 
 import love.marblegate.boomood.Boomood;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.AvailableBlockPosHolder;
-import love.marblegate.boomood.mechanism.itemstackreversion.result.ChestDestructionSituationResult;
 import love.marblegate.boomood.mechanism.itemstackreversion.dataholder.IntermediateResultHolder;
+import love.marblegate.boomood.mechanism.itemstackreversion.result.ChestDestructionSituationResult;
 import love.marblegate.boomood.misc.MiscUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +22,7 @@ public class ChestDestructionReversionCase implements ReversionCase {
     @Override
     public void add(IntermediateResultHolder pack) {
         var result = (ChestDestructionSituationResult) pack.result();
-        if(result.getTargets()==null)
+        if (result.getTargets() == null)
             targets.addAll(pack.items());
         else
             targets.addAll(result.getTargets());

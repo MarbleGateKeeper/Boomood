@@ -4,11 +4,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.JsonOps;
 import love.marblegate.boomood.misc.MiscUtils;
-import net.minecraft.core.BlockPos;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 import java.util.List;
 
@@ -17,23 +14,23 @@ public class ChestDestructionSituationResult extends ReversionSituationResult {
 
     public ChestDestructionSituationResult(JsonObject jsonObject) {
         if (jsonObject.has("itemstack")) {
-            try{
+            try {
                 var itemStackJson = GsonHelper.getAsJsonObject(jsonObject, "itemstack");
                 var itemStackResult = MiscUtils.ITEMSTACK_CODEC.parse(JsonOps.INSTANCE, itemStackJson);
                 targets = List.of(itemStackResult.getOrThrow(false, err -> {
                     throw new JsonSyntaxException("Invalid itemstack: " + itemStackJson + ". Error: " + err);
                 }));
-            }catch(ClassCastException e){
+            } catch (ClassCastException e) {
                 throw new JsonSyntaxException("\"itemstack\" in recipe json must be a JsonObject to represent a itemstack.");
             }
         } else if (jsonObject.has("itemstacks")) {
-            try{
+            try {
                 var itemStackJson = GsonHelper.getAsJsonArray(jsonObject, "itemstacks");
                 var itemStackResult = MiscUtils.ITEMSTACK_CODEC.listOf().parse(JsonOps.INSTANCE, itemStackJson);
                 targets = itemStackResult.getOrThrow(false, err -> {
                     throw new JsonSyntaxException("Invalid itemstacks: " + itemStackJson + ". Error: " + err);
                 });
-            }catch(ClassCastException e){
+            } catch (ClassCastException e) {
                 throw new JsonSyntaxException("\"itemstacks\" in recipe json must be a JsonArray to represent itemstacks.");
             }
         } else targets = null;
@@ -49,7 +46,7 @@ public class ChestDestructionSituationResult extends ReversionSituationResult {
         var ret = new JsonObject();
         ret.addProperty("type", "chest_destruction");
         if (targets != null) {
-            if(targets.size()==1)
+            if (targets.size() == 1)
                 ret.add("itemstack", MiscUtils.ITEMSTACK_CODEC.encodeStart(JsonOps.INSTANCE, targets.get(0)).get().left().get());
             else
                 ret.add("itemstacks", MiscUtils.ITEMSTACK_CODEC.listOf().encodeStart(JsonOps.INSTANCE, targets).get().left().get());
